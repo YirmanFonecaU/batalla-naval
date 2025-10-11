@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+* {
+  font-family: 'Press Start 2P', cursive;
+}
+
 /* Removemos los estilos globales de body */
 
 .menu-container {
@@ -42,7 +46,7 @@
 
 .tablero-container {
   position: relative;
-  background-color: #1a001f;
+  background-color: #000000;
   height: 100vh;
   color: #fff;
   display: flex;
@@ -61,40 +65,61 @@
 }
 
 .icon-btn {
-  background-color: #3b0049;
+  background-color: #8b4fb8;
   color: #fff;
-  border: 2px solid #a64aff;
-  font-size: 20px;
-  padding: 6px 10px;
+  border: 2px solid #c084fc;
+  font-size: 16px;
+  padding: 10px 15px;
   cursor: pointer;
   border-radius: 50%;
   font-family: 'Press Start 2P', cursive;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.icon-btn:hover {
+  background-color: #a855f7;
+  transform: scale(1.1);
 }
 
 .rules-box {
   position: absolute;
   top: 80px;
   left: 60px;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.95);
   color: #000;
   font-size: 10px;
-  width: 300px;
-  padding: 15px;
+  width: 320px;
+  padding: 20px;
   border-radius: 10px;
+  font-family: 'Press Start 2P', cursive;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  line-height: 1.6;
+}
+
+.rules-box ol {
+  padding-left: 20px;
+}
+
+.rules-box li {
+  margin-bottom: 12px;
 }
 
 .grid-container {
-  margin-top: 60px;
   position: relative;
 }
 
 /* Layout principal para caja de barcos y tablero */
 .game-layout {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 50px;
-  margin-top: 60px;
+  margin-top: 20px;
 }
 
 /* Sección completa del tablero (tablero + botones) */
@@ -105,55 +130,171 @@
   gap: 20px;
 }
 
-/* Contenedor de barcos disponibles */
+/* Contenedor de barcos disponibles - estilo imagen */
 .ships-dock {
-  background-color: rgba(59, 0, 73, 0.9);
-  padding: 20px;
-  border-radius: 10px;
-  border: 2px solid #a64aff;
-  min-width: 200px;
-  max-width: 250px;
-  min-height: 400px;
+  background-color: #000000;
+  padding: 12px;
+  border-radius: 0;
+  border: none;
+  min-width: 160px;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
 }
 
 .ships-dock h3 {
-  color: #fff;
-  font-size: 14px;
-  margin-bottom: 20px;
+  display: none;
+}
+
+/* Estilos para los barcos individuales en la caja */
+.ship-item {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  border: none;
+  margin: 0;
+  cursor: grab;
+  display: block;
+  border-radius: 4px;
+  transition: all 0.2s;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.ship-item:hover {
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(167, 139, 250, 0.5);
+}
+
+.ship-item:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+/* Todos los barcos horizontales por defecto */
+.ship-item.horizontal {
+  height: 35px;
+  width: auto;
+}
+
+/* Barcos verticales - más angostos */
+.ship-item.vertical {
+  width: 35px;
+  height: auto;
+}
+
+/* Segmentos de barco - OCULTOS, el barco es un bloque sólido */
+.ship-segments {
+  display: none;
+}
+
+/* Tamaños específicos según el tamaño del barco */
+.ship-item[data-ship-size="5"].horizontal {
+  width: 140px;
+}
+
+.ship-item[data-ship-size="4"].horizontal {
+  width: 112px;
+}
+
+.ship-item[data-ship-size="3"].horizontal {
+  width: 84px;
+}
+
+.ship-item[data-ship-size="2"].horizontal {
+  width: 56px;
+}
+
+.ship-item[data-ship-size="5"].vertical {
+  height: 140px;
+}
+
+.ship-item[data-ship-size="4"].vertical {
+  height: 112px;
+}
+
+.ship-item[data-ship-size="3"].vertical {
+  height: 84px;
+}
+
+.ship-item[data-ship-size="2"].vertical {
+  height: 56px;
+}
+
+.all-placed {
+  color: #e9d5ff;
+  font-size: 7px;
   text-align: center;
-  text-transform: uppercase;
+  margin-top: 8px;
+  font-family: 'Press Start 2P', cursive;
 }
 
 /* Botones debajo del tablero */
 .board-buttons {
   display: flex;
   gap: 20px;
+  justify-content: center;
 }
 
-.all-placed {
-  color: #d19fe8;
-  font-size: 10px;
-  text-align: center;
-  margin-top: 20px;
-  font-style: italic;
-}
-
+/* Tablero con etiquetas FUERA de la cuadrícula */
+/* Tablero con etiquetas FUERA de la cuadrícula */
 .board {
-  border-collapse: collapse;
-  background-color: #0b0b15;
+  border-collapse: separate;
+  border-spacing: 2px;
+  background-color: transparent;
+  padding: 0;
 }
 
-.board th,
-.board td {
-  border: 1px solid #555;
-  width: 30px;
-  height: 30px;
+/* Etiquetas de columnas (A, B, C...) */
+.board thead th {
+  border: none;
+  width: 32px;
+  height: 32px;
   text-align: center;
-  color: #aab;
+  color: #94a3b8;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background-color: transparent;
+  padding: 0;
+  vertical-align: middle;
+}
+
+/* Primera celda vacía (esquina superior izquierda) */
+.board thead th:first-child {
+  background-color: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+}
+
+/* Etiquetas de filas (1, 2, 3...) */
+.board tbody th {
+  border: none;
+  width: 32px;
+  height: 32px;
+  text-align: center;
+  color: #94a3b8;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background-color: transparent;
+  padding: 0;
+  vertical-align: middle;
+}
+
+/* Celdas del tablero (la cuadrícula 10x10) */
+.board td {
+  border: 1px solid #334155;
+  width: 32px;
+  height: 32px;
+  text-align: center;
+  background-color: #475569;
   font-family: 'Press Start 2P', cursive;
   position: relative;
   transition: background-color 0.2s;
+  padding: 0;
 }
+
 
 /* Estilos para las celdas ocupadas y preview */
 .board td.occupied {
@@ -170,116 +311,95 @@
   border: 2px solid #ff0000;
 }
 
-
-/* Estilos para los barcos individuales en la caja */
-.ship-item {
-  background-color: #9b4bcc;
-  border: 2px solid #d19fe8;
-  margin: 15px 0;
-  cursor: grab;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
-  padding: 5px;
-}
-
-.ship-item:hover {
-  background-color: #b55ee0;
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(155, 75, 204, 0.4);
-}
-
-.ship-item:active {
-  cursor: grabbing;
-}
-
-.ship-item.horizontal {
-  min-height: 40px;
-  width: 100%;
-}
-
-.ship-item.vertical {
-  min-width: 40px;
-  height: auto;
-  flex-direction: column;
-}
-
-/* Segmentos de barco */
-.ship-segments {
-  display: flex;
-  gap: 2px;
-}
-
-.ship-item.vertical .ship-segments {
-  flex-direction: column;
-}
-
-.ship-segment {
-  background-color: rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 2px;
-}
-
-.ship-item.horizontal .ship-segment {
-  width: 25px;
-  height: 25px;
-}
-
-.ship-item.vertical .ship-segment {
-  width: 25px;
-  height: 25px;
-}
-
 /* Overlay para barcos colocados en el tablero */
 .ships-overlay {
   position: absolute;
   top: 0;
   left: 0;
   pointer-events: none;
+  width: 100%;
+  height: 100%;
 }
 
 .ship-placed {
   position: absolute;
-  background-color: #9b4bcc;
-  border: 2px solid #d19fe8;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 3px;
   cursor: grab;
   transition: all 0.2s;
   z-index: 10;
   pointer-events: all;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.6);
 }
 
 .ship-placed:hover {
-  background-color: #b55ee0;
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(155, 75, 204, 0.4);
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%);
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.8);
+}
+.ships-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ships-header-btn {
+ background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);  border: 2px solid #d4c1e7;
+  border-radius: 25px;
+  color: #ffffff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  padding: 10px 25px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: default;
+  box-shadow: 0 4px 10px rgba(124, 75, 209, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  margin-bottom: 5px;
+  min-width: 160px;
+  text-align: center;
+}
+
+/* Contenedor de barcos disponibles - estilo imagen */
+.ships-dock {
+  background-color: #000000;
+  padding: 12px;
+  border-radius: 0;
+  border: none;
+  min-width: 160px;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
 }
 
 .ship-placed:active {
   cursor: grabbing;
+  transform: scale(0.98);
 }
-
 .action-btn {
-  background-color: #3b0049;
-  border: 2px solid #a64aff;
+  background-color: #7c3aed;
+  border: 2px solid #a78bfa;
   color: white;
-  padding: 10px 25px;
-  font-size: 12px;
+  padding: 12px 30px;
+  font-size: 10px;
   cursor: pointer;
   transition: 0.3s;
   font-family: 'Press Start 2P', cursive;
+  border-radius: 5px;
 }
 
 .action-btn:hover {
-  background-color: #5a0072;
+  background-color: #8b5cf6;
+  transform: scale(1.05);
 }
 
 /* Estilos para la página de juego */
 .game-container {
   position: relative;
-  background-color: #1a001f;
+  background-color: #000000;
   height: 100vh;
   color: #fff;
   display: flex;
@@ -297,20 +417,14 @@
   margin-top: 40px;
 }
 
-.board-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
 .board-title {
-  color: #d19fe8;
+  color: #c084fc;
   font-size: 16px;
   text-align: center;
   text-transform: uppercase;
   margin-bottom: 10px;
   text-shadow: 2px 2px #000;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .game-board {
@@ -369,7 +483,8 @@
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  color: #d19fe8;
+  color: #c084fc;
   font-size: 12px;
   text-align: center;
+  font-family: 'Press Start 2P', cursive;
 }
