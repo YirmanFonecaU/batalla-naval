@@ -56,6 +56,35 @@ export default function Juego() {
     }
   }, []);
 
+  // Función para verificar si todos los barcos de un jugador están hundidos
+  const areAllShipsSunk = (ships, attacks) => {
+    return ships.every(ship => {
+      const positions = getShipPositions(ship);
+      return positions.every(pos =>
+        attacks.some(attack => attack.row === pos.row && attack.col === pos.col && attack.isHit)
+      );
+    });
+  };
+
+  // Verificar estado del juego y redirigir si es necesario
+  useEffect(() => {
+    // Verificar si hemos ganado (todos los barcos enemigos hundidos)
+    if (areAllShipsSunk(enemyShips, ourAttacks)) {
+      setTimeout(() => {
+        navigate("/ganaste");
+      }, 1000); // Delay para que el jugador vea el último impacto
+      return;
+    }
+
+    // Verificar si hemos perdido (todos nuestros barcos hundidos)
+    if (areAllShipsSunk(ourShips, enemyAttacks)) {
+      setTimeout(() => {
+        navigate("/perdiste");
+      }, 1000); // Delay para que el jugador vea el último impacto
+      return;
+    }
+  }, [ourAttacks, enemyAttacks, navigate]);
+
   // Función para obtener todas las posiciones que ocupa un barco
   const getShipPositions = (ship) => {
     const positions = [];
@@ -241,52 +270,88 @@ export default function Juego() {
     return 'empty';
   };
 
+  // Determina si una celda es parte de un barco enemigo hundido
+  const isSunkShipCell = (row, col) => {
+    for (const ship of enemyShips) {
+      const positions = getShipPositions(ship);
+      // Un barco está hundido si todos sus segmentos han sido impactados
+      const allHit = positions.every(pos =>
+        ourAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit)
+      );
+      if (allHit) {
+        // ¿Esta celda es parte de este barco?
+        if (positions.some(pos => pos.row === row && pos.col === col)) {
+          // ¿Y fue disparada?
+          if (ourAttacks.some(a => a.row === row && a.col === col && a.isHit)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+
   return (
     <div className="game-container">
       <div className="top-buttons">
         <button className="icon-btn" onClick={() => navigate("/tablero")}>↩</button>
       </div>
+      
+      <div className="game-layout-with-ships">
+        {/* Sección de barcos (izquierda) */}
+        <div className="ships-container-left">
+          <div className="ships-status-section">
+            <div className="ships-header-btn">NUESTROS BARCOS</div>
+            <div className="ships-status-grid">
+              {ourShips.map(ship => {
+                const positions = getShipPositions(ship);
+                const allHit = positions.every(pos =>
+                  enemyAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit)
+                );
+                
+                return (
+                  <div key={ship.id} className={`ship-status ${allHit ? 'sunk' : 'alive'}`}>
+                    {Array.from({ length: ship.size }, (_, i) => {
+                      const pos = positions[i];
+                      const isHit = enemyAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit);
+                      return (
+                        <div key={i} className={`ship-segment-status ${isHit ? 'hit' : 'intact'}`}></div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-      <div className="game-boards">
-        {/* Tablero izquierdo - Nuestros barcos */}
-        <div className="board-section">
-          <h2 className="board-title">NUESTROS BARCOS</h2>
-          <table className="game-board">
-            <thead>
-              <tr>
-                <th></th>
-                {Array.from({ length: 10 }, (_, i) => (
-                  <th key={i}>{String.fromCharCode(65 + i)}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 10 }, (_, row) => (
-                <tr key={row}>
-                  <th>{row + 1}</th>
-                  {Array.from({ length: 10 }, (_, col) => {
-                    const cellState = getOurCellState(row, col);
-                    return (
-                      <td 
-                        key={col}
-                        className={`game-cell ${cellState}`}
-                      >
-                        {cellState === 'hit' && '💥'}
-                        {cellState === 'miss' && '💧'}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="ships-status-section">
+            <div className="ships-header-btn">BARCOS RIVALES</div>
+            <div className="ships-status-grid">
+              {enemyShips.map(ship => {
+                const positions = getShipPositions(ship);
+                const allHit = positions.every(pos =>
+                  ourAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit)
+                );
+                
+                return (
+                  <div key={ship.id} className={`ship-status ${allHit ? 'sunk' : 'alive'}`}>
+                    {Array.from({ length: ship.size }, (_, i) => {
+                      const pos = positions[i];
+                      const isHit = ourAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit);
+                      return (
+                        <div key={i} className={`ship-segment-status ${isHit ? 'hit' : 'intact'}`}></div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Tablero derecho - Ataques enemigos */}
+        {/* Tablero central */}
         <div className="board-section">
-          <h2 className="board-title">
-            {isOurTurn ? "Tu Turno" : "Turno Enemigo"}
-          </h2>
+          <h2 className="board-title">{isOurTurn ? "Tu Turno" : "Turno Rival"}</h2>
           <table className="game-board">
             <thead>
               <tr>
@@ -303,11 +368,11 @@ export default function Juego() {
                   {Array.from({ length: 10 }, (_, col) => {
                     const cellState = getEnemyCellState(row, col);
                     const isClickable = isOurTurn && cellState === 'empty';
-                    
+                    const sunk = isSunkShipCell(row, col);
                     return (
-                      <td 
+                      <td
                         key={col}
-                        className={`game-cell ${cellState} ${isClickable ? 'clickable' : ''}`}
+                        className={`game-cell ${cellState} ${sunk ? 'sunk-ship' : ''} ${isClickable ? 'clickable' : ''}`}
                         onClick={() => isClickable && handleAttack(row, col)}
                       >
                         {cellState === 'hit' && '💥'}
@@ -323,18 +388,9 @@ export default function Juego() {
         </div>
       </div>
       
-      {/* Botones centrados debajo de los tableros */}
       <div className="board-buttons">
-        <button className="action-btn" onClick={() => navigate("/ganaste")}>
-          Pantalla de Ganaste
-        </button>
-        <button className="action-btn" onClick={() => navigate("/perdiste")}>
-          Pantalla de Perdiste
-        </button>
-      </div>
-
-      <div className="game-status">
-        <p>{isOurTurn ? "¡Tu turno! Haz clic en una casilla para atacar" : "Turno del enemigo..."}</p>
+        <button className="action-btn" onClick={() => navigate("/ganaste")}>Pantalla de Ganaste</button>
+        <button className="action-btn" onClick={() => navigate("/perdiste")}>Pantalla de Perdiste</button>
       </div>
     </div>
   );

@@ -216,21 +216,18 @@ export default function Tablero() {
   {/* Caja de barcos a la izquierda */}
   <div className="ships-section">
     <button className="ships-header-btn">NUESTROS BARCOS</button>
-    <div className="ships-dock">
+    <div className="ships-status-grid">
       {ships.filter(ship => !ship.placed).map(ship => (
         <div
           key={ship.id}
-          className={`ship-item ${ship.orientation}`}
+          className={`ship-status alive`}
           draggable
           onDragStart={(e) => handleDragStart(e, ship)}
           onContextMenu={(e) => handleShipRightClick(e, ship.id)}
-          data-ship-size={ship.size}
         >
-          <div className="ship-segments">
-            {Array.from({ length: ship.size }, (_, i) => (
-              <div key={i} className="ship-segment"></div>
-            ))}
-          </div>
+          {Array.from({ length: ship.size }, (_, i) => (
+            <div key={i} className="ship-segment-status intact"></div>
+          ))}
         </div>
       ))}
       {ships.filter(ship => !ship.placed).length === 0 && (
@@ -243,7 +240,7 @@ export default function Tablero() {
         {/* Tablero en el centro con botones debajo */}
         <div className="board-section">
           <div className="grid-container">
-            <table className="board">
+            <table className="game-board">
               <thead>
                 <tr>
                   <th></th>
@@ -264,7 +261,7 @@ export default function Tablero() {
                       const isPreview = dragPreview.row === row && dragPreview.col === col;
 
                       // Crear clases CSS dinámicas
-                      let cellClasses = '';
+                      let cellClasses = 'game-cell';
                       if (isOccupied) cellClasses += ' occupied';
                       if (isPreview) cellClasses += dragPreview.valid ? ' preview-valid' : ' preview-invalid';
 
@@ -275,6 +272,38 @@ export default function Tablero() {
                           onDragOver={(e) => handleDragOver(e, row, col)}
                           onDragLeave={handleDragLeave}
                           onDrop={(e) => handleDrop(e, row, col)}
+                          onDoubleClick={() => {
+                            if (isOccupied) {
+                              // Encontrar el barco en esta posición y removerlo
+                              const ship = ships.find(ship => {
+                                if (!ship.placed) return false;
+                                for (let i = 0; i < ship.size; i++) {
+                                  const shipRow = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
+                                  const shipCol = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
+                                  if (shipRow === row && shipCol === col) return true;
+                                }
+                                return false;
+                              });
+                              if (ship) removeShipFromBoard(ship.id);
+                            }
+                          }}
+                          onContextMenu={(e) => {
+                            if (isOccupied) {
+                              e.preventDefault();
+                              // Encontrar el barco en esta posición y rotarlo
+                              const ship = ships.find(ship => {
+                                if (!ship.placed) return false;
+                                for (let i = 0; i < ship.size; i++) {
+                                  const shipRow = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
+                                  const shipCol = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
+                                  if (shipRow === row && shipCol === col) return true;
+                                }
+                                return false;
+                              });
+                              if (ship) handleShipRightClick(e, ship.id);
+                            }
+                          }}
+                          title={isOccupied ? "Doble clic para remover | Clic derecho para rotar" : ""}
                         >
                         </td>
                       );
@@ -283,43 +312,6 @@ export default function Tablero() {
                 ))}
               </tbody>
             </table>
-
-            {/* Barcos colocados en el tablero */}
-            {/* Barcos colocados en el tablero */}
-            <div className="ships-overlay">
-              {ships.map(ship => {
-                if (!ship.placed) return null;
-
-                // Calcular posición pixel basada en la posición del grid
-                const cellSize = 34; // 32px de celda + 2px de border-spacing
-                const boardStartX = 32; // Ajuste para las etiquetas de fila (ancho del th)
-                const boardStartY = 32; // Ajuste para las etiquetas de columna (altura del th)
-
-                const pixelX = boardStartX + ship.col * cellSize + 1;
-                const pixelY = boardStartY + ship.row * cellSize + 1;
-
-                const width = ship.orientation === 'horizontal' ? ship.size * cellSize - 2 : cellSize - 2;
-                const height = ship.orientation === 'horizontal' ? cellSize - 2 : ship.size * cellSize - 2;
-
-                return (
-                  <div
-                    key={ship.id}
-                    className={`ship-placed ship-${ship.orientation}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, ship)}
-                    onContextMenu={(e) => handleShipRightClick(e, ship.id)}
-                    onDoubleClick={() => removeShipFromBoard(ship.id)}
-                    style={{
-                      left: `${pixelX}px`,
-                      top: `${pixelY}px`,
-                      width: `${width}px`,
-                      height: `${height}px`,
-                    }}
-                    title="Doble clic para remover | Clic derecho para rotar"
-                  />
-                );
-              })}
-            </div>
           </div>
 
           {/* Botones debajo del tablero */}
