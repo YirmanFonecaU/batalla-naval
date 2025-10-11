@@ -322,7 +322,9 @@ export default function Juego() {
           </table>
         </div>
       </div>
-      <div className="board-buttons" style={{ marginTop: "40px" }}>
+      
+      {/* Botones centrados debajo de los tableros */}
+      <div className="board-buttons">
         <button className="action-btn" onClick={() => navigate("/ganaste")}>
           Pantalla de Ganaste
         </button>
