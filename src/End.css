@@ -1,0 +1,64 @@
+.end-screen {
+  height: 100vh;
+  width: 100vw;
+  background-image: url("/Captura%20de%20pantalla%202025-10-06%20214315.png") !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  color: white;
+  text-align: center;
+}
+
+.end-title {
+  font-size: 4rem;
+  font-weight: bold;
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
+  font-family: "Press Start 2P", cursive;
+}
+
+.victory {
+  color: #ffdf00;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.defeat {
+  color: #ff4040;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.end-image {
+  width: 200px;
+  height: auto;
+  image-rendering: pixelated;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.end-button {
+  background-color: #4b0055;
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.end-button:hover {
+  background-color: #7a0080;
+  transform: scale(1.05);
+}
