@@ -9,7 +9,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 30px;
+  gap: 60px;
   color: white;
   text-align: center;
 }
@@ -48,17 +48,24 @@
 }
 
 .end-button {
-  background-color: #4b0055;
-  color: #fff;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 25px;
-  font-size: 1rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  border: 2px solid #a78bfa;
+  color: white;
+  padding: 15px 35px;
+  font-size: 12px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  font-family: 'Press Start 2P', cursive;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+  min-width: 180px;
+  text-align: center;
 }
 
 .end-button:hover {
-  background-color: #7a0080;
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
 }
