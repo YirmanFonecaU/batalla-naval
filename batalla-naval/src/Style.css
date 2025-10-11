@@ -1,0 +1,375 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Removemos los estilos globales de body */
+
+.menu-container {
+  background-image: url("./fondo-batalla.png");
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.menu-content {
+  text-align: center;
+}
+
+.title {
+  font-size: 30px;
+  color: #d19fe8;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px #000;
+}
+
+.menu-btn {
+  background-color: #3b0049;
+  color: white;
+  border: 3px solid #a64aff;
+  font-size: 14px;
+  padding: 12px 25px;
+  margin: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.menu-btn:hover {
+  background-color: #5a0072;
+}
+
+.tablero-container {
+  position: relative;
+  background-color: #1a001f;
+  height: 100vh;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.top-buttons {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background-color: #3b0049;
+  color: #fff;
+  border: 2px solid #a64aff;
+  font-size: 20px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 50%;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.rules-box {
+  position: absolute;
+  top: 80px;
+  left: 60px;
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #000;
+  font-size: 10px;
+  width: 300px;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.grid-container {
+  margin-top: 60px;
+  position: relative;
+}
+
+/* Layout principal para caja de barcos y tablero */
+.game-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 50px;
+  margin-top: 60px;
+}
+
+/* Sección completa del tablero (tablero + botones) */
+.board-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Contenedor de barcos disponibles */
+.ships-dock {
+  background-color: rgba(59, 0, 73, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #a64aff;
+  min-width: 200px;
+  max-width: 250px;
+  min-height: 400px;
+}
+
+.ships-dock h3 {
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Botones debajo del tablero */
+.board-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.all-placed {
+  color: #d19fe8;
+  font-size: 10px;
+  text-align: center;
+  margin-top: 20px;
+  font-style: italic;
+}
+
+.board {
+  border-collapse: collapse;
+  background-color: #0b0b15;
+}
+
+.board th,
+.board td {
+  border: 1px solid #555;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  color: #aab;
+  font-family: 'Press Start 2P', cursive;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+/* Estilos para las celdas ocupadas y preview */
+.board td.occupied {
+  background-color: #9b4bcc !important;
+}
+
+.board td.preview-valid {
+  background-color: rgba(155, 75, 204, 0.5) !important;
+  border: 2px solid #9b4bcc;
+}
+
+.board td.preview-invalid {
+  background-color: rgba(255, 0, 0, 0.3) !important;
+  border: 2px solid #ff0000;
+}
+
+
+/* Estilos para los barcos individuales en la caja */
+.ship-item {
+  background-color: #9b4bcc;
+  border: 2px solid #d19fe8;
+  margin: 15px 0;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+  padding: 5px;
+}
+
+.ship-item:hover {
+  background-color: #b55ee0;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(155, 75, 204, 0.4);
+}
+
+.ship-item:active {
+  cursor: grabbing;
+}
+
+.ship-item.horizontal {
+  min-height: 40px;
+  width: 100%;
+}
+
+.ship-item.vertical {
+  min-width: 40px;
+  height: auto;
+  flex-direction: column;
+}
+
+/* Segmentos de barco */
+.ship-segments {
+  display: flex;
+  gap: 2px;
+}
+
+.ship-item.vertical .ship-segments {
+  flex-direction: column;
+}
+
+.ship-segment {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+
+.ship-item.horizontal .ship-segment {
+  width: 25px;
+  height: 25px;
+}
+
+.ship-item.vertical .ship-segment {
+  width: 25px;
+  height: 25px;
+}
+
+/* Overlay para barcos colocados en el tablero */
+.ships-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.ship-placed {
+  position: absolute;
+  background-color: #9b4bcc;
+  border: 2px solid #d19fe8;
+  border-radius: 4px;
+  cursor: grab;
+  transition: all 0.2s;
+  z-index: 10;
+  pointer-events: all;
+}
+
+.ship-placed:hover {
+  background-color: #b55ee0;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(155, 75, 204, 0.4);
+}
+
+.ship-placed:active {
+  cursor: grabbing;
+}
+
+.action-btn {
+  background-color: #3b0049;
+  border: 2px solid #a64aff;
+  color: white;
+  padding: 10px 25px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.action-btn:hover {
+  background-color: #5a0072;
+}
+
+/* Estilos para la página de juego */
+.game-container {
+  position: relative;
+  background-color: #1a001f;
+  height: 100vh;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.game-boards {
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.board-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.board-title {
+  color: #d19fe8;
+  font-size: 16px;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px #000;
+}
+
+.game-board {
+  border-collapse: collapse;
+  background-color: #0b0b15;
+  border: 2px solid #555;
+}
+
+.game-board th,
+.game-board td {
+  border: 1px solid #555;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  color: #aab;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+/* Estados de las celdas del juego */
+.game-cell.ship {
+  background-color: #9b4bcc;
+}
+
+.game-cell.hit {
+  background-color: #ff4444;
+  border: 2px solid #ff0000;
+}
+
+.game-cell.miss {
+  background-color: #4444ff;
+  border: 2px solid #0066ff;
+}
+
+.game-cell.auto-water {
+  background-color: #2d4d7a;
+  border: 2px solid #4a6ba8;
+  opacity: 0.7;
+}
+
+.game-cell.clickable {
+  cursor: pointer;
+  background-color: #1a1a2e;
+}
+
+.game-cell.clickable:hover {
+  background-color: #333355;
+  border: 2px solid #a64aff;
+  transform: scale(1.1);
+}
+
+.game-status {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d19fe8;
+  font-size: 12px;
+  text-align: center;
+}

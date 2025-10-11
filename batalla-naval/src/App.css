@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Estilos específicos solo para la página de inicio */
+.home-page {
+  height: 100vh;
+  width: 100vw;
+  font-family: 'Press Start 2P', cursive;
+  color: white;
+  background-image: url('../Captura\ de\ pantalla\ 2025-10-06\ 214315.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Contenedor principal */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  z-index: 10;
+}
+
+/* Título del juego */
+.title {
+  font-size: 4rem;
+  line-height: 1.2;
+  text-align: center;
+  letter-spacing: 6px;
+  color: white;
+  text-shadow: 
+    0 0 15px #ff00ff,
+    0 0 25px #ff00ff;
+}
+
+/* Botones */
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+}
+
+.btn {
+  background-color: transparent;
+  border: 3px solid white;
+  color: white;
+  padding: 18px 35px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.btn:hover {
+  background-color: white;
+  color: black;
+  transform: scale(1.05);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
