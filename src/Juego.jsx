@@ -322,6 +322,14 @@ export default function Juego() {
           </table>
         </div>
       </div>
+      <div className="board-buttons" style={{ marginTop: "40px" }}>
+        <button className="action-btn" onClick={() => navigate("/ganaste")}>
+          Pantalla de Ganaste
+        </button>
+        <button className="action-btn" onClick={() => navigate("/perdiste")}>
+          Pantalla de Perdiste
+        </button>
+      </div>
 
       <div className="game-status">
         <p>{isOurTurn ? "¡Tu turno! Haz clic en una casilla para atacar" : "Turno del enemigo..."}</p>
