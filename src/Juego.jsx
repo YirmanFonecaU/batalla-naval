@@ -35,6 +35,20 @@ export default function Juego() {
   // Estado para casillas de agua marcadas automáticamente
   const [autoWaterMarks, setAutoWaterMarks] = useState([]);
 
+    // 🔹 Guardar progreso automáticamente cuando cambie algo importante
+  useEffect(() => {
+    const partida = {
+      ourShips,
+      enemyShips,
+      enemyAttacks,
+      ourAttacks,
+      isOurTurn,
+      autoWaterMarks
+    };
+    localStorage.setItem("batalla-naval-checkpoint", JSON.stringify(partida));
+  }, [ourShips, enemyShips, enemyAttacks, ourAttacks, isOurTurn, autoWaterMarks]);
+
+
   // Función para validar configuración de barcos
   const validateShipConfiguration = (ships) => {
     const sizes = ships.map(ship => ship.size).sort((a, b) => b - a);
