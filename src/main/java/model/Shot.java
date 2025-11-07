@@ -1,4 +1,4 @@
-package com.batallaNaval.model;
+package main.java.model;
 
 public class Shot {
     private int fila;

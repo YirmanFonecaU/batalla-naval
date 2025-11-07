@@ -1,7 +1,7 @@
-package model;
+package main.java.model;
 import java.util.ArrayList;
 import java.util.List;
-
+//import Ship ;
 public class Board {
     private int filas = 10;
     private int columnas = 10;
@@ -12,7 +12,7 @@ public class Board {
         celdas = new Cell[filas][columnas];
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
-                celdas[i][j] = new Celda(i, j);
+                celdas[i][j] = new Cell(i, j);
             }
         }
         barcos = new ArrayList<>();
@@ -26,10 +26,9 @@ public class Board {
         return true;
     }
 
-    public Celda obtenerCelda(int fila, int columna) {
+    public Cell obtenerCelda(int fila, int columna) {
         return celdas[fila][columna];
     }
-
     public List<Ship> getBarcos() {
         return barcos;
     }

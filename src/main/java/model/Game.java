@@ -1,4 +1,4 @@
-package com.batallaNaval.model;
+package main.java.model;
 
 public class Game {
     private Player jugador1;
@@ -38,8 +38,8 @@ public class Game {
     }
 
     private void verificarFin() {
-        boolean todosHundidosJ1 = jugador1.getTablero().getBarcos().stream().allMatch(Barco::estaHundido);
-        boolean todosHundidosJ2 = jugador2.getTablero().getBarcos().stream().allMatch(Barco::estaHundido);
+        boolean todosHundidosJ1 = jugador1.getTablero().getBarcos().stream().allMatch(Ship::estaHundido);
+        boolean todosHundidosJ2 = jugador2.getTablero().getBarcos().stream().allMatch(Ship::estaHundido);
         if (todosHundidosJ1 || todosHundidosJ2) terminado = true;
     }
 
