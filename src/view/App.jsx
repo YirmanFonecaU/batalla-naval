@@ -4,7 +4,7 @@ import Tablero from "./Tablero";
 import Juego from "./Juego";
 import Ganaste from "./Ganaste";
 import Perdiste from "./Perdiste";
-import './App.css';
+import './styles/App.css';
 
 // Componente principal de la pantalla de inicio
 const Home = () => {

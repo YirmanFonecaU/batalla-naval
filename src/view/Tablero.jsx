@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Style.css";
+import "./styles/Style.css";
 
 export default function Tablero() {
   const navigate = useNavigate();

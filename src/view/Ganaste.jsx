@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./End.css"; 
+import "./styles/End.css"; 
 
 const Ganaste = () => {
   const navigate = useNavigate();
