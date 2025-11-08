@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "Backend API para el juego Batalla Naval",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["batalla-naval", "battleship", "api", "express"],
+  "keywords": [
+    "batalla-naval",
+    "battleship",
+    "api",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

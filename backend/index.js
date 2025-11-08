@@ -1,7 +1,7 @@
-const express = require("express");
-const cors = require("cors");
-
+import express from "express";
+import cors from "cors";
 const app = express();
+import process from 'process';
 const PORT = process.env.PORT || 3001;
 
 // Middlewares

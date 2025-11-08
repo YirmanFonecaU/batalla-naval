@@ -86,7 +86,7 @@ export default function Juego() {
 
     try {
       // Realizar el disparo
-      const result = game.makeShot(1, row, col);
+      game.makeShot(1, row, col);
 
       // Actualizar el estado del juego
       const newState = game.getGameState(1);
