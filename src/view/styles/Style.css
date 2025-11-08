@@ -626,3 +626,140 @@
   border: 1px solid #ff0000;
   box-shadow: 0 0 3px rgba(255, 68, 68, 0.6);
 }
+/* ==========================================
+   ESTILOS ADICIONALES PARA JUEGO.JSX
+   Agregar al final de tu Style.css existente
+   ========================================== */
+
+/* Layout para dos tableros verticales en Juego.jsx */
+.boards-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+  flex: 1;
+}
+
+/* Asegurar que el tablero use tus estilos existentes */
+.boards-wrapper .game-board {
+  border-collapse: collapse;
+  background-color: #0b0b15;
+  border: 2px solid #555;
+}
+
+.boards-wrapper .game-board th,
+.boards-wrapper .game-board td {
+  border: 1px solid #555;
+  width: 28px;
+  height: 28px;
+  text-align: center;
+  color: #aab;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+/* Sección de estadísticas (nuevo) */
+.stats-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+  padding: 12px;
+  background-color: rgba(26, 26, 46, 0.6);
+  border-radius: 8px;
+  border: 2px solid #555;
+}
+
+.stat-box {
+  padding: 8px 16px;
+  background-color: rgba(139, 92, 246, 0.2);
+  border-radius: 6px;
+  border: 1px solid #8b5cf6;
+  color: #fff;
+  font-size: 9px;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.stat-box strong {
+  color: #c084fc;
+  margin-right: 5px;
+}
+
+/* Loading screen (nuevo) */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #c084fc;
+  font-family: 'Press Start 2P', cursive;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Ajuste para el título del tablero en Juego.jsx */
+.boards-wrapper .board-title {
+  color: #c084fc;
+  font-size: 14px;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px #000;
+  font-family: 'Press Start 2P', cursive;
+}
+
+/* Animación de impacto (mejora visual) */
+@keyframes hit-flash {
+  0%, 100% { 
+    background-color: #ff4444;
+    box-shadow: 0 0 8px 2px #ff000055;
+  }
+  50% { 
+    background-color: #ffaa00;
+    box-shadow: 0 0 12px 3px #ffaa0055;
+  }
+}
+
+.game-cell.hit {
+  animation: hit-flash 0.5s;
+}
+
+/* Animación para segmentos de barco impactados */
+@keyframes segment-hit {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.ship-segment-status.hit {
+  animation: segment-hit 0.5s;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 1200px) {
+  .game-layout-with-ships {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .ships-container-left {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .boards-wrapper {
+    width: 100%;
+  }
+  
+  .stats-section {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

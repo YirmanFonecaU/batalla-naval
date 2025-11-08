@@ -1,4 +1,5 @@
-const Player = require('./Player');
+import Player from './Player.js';
+import Board from './Board.js';
 
 class Game {
   constructor(gameId, player1Name, player2Name = null, isVsAI = false) {
@@ -24,13 +25,13 @@ class Game {
   // Configurar barcos del jugador
   setPlayerShips(playerId, ships) {
     const player = playerId === 1 ? this.player1 : this.player2;
-    
+
     if (!player) {
       throw new Error('Player not found');
     }
 
     // Reinicializar el tablero
-    player.board = new (require('./Board'))();
+    player.board = new Board();
 
     // Colocar cada barco
     for (const shipData of ships) {
@@ -96,13 +97,16 @@ class Game {
     });
 
     // Verificar condición de victoria
-    if (shooter.hasWon()) {
+    if (this.player1.hasLost()) {
       this.status = 'finished';
-      this.winner = playerId;
+      this.winner = 2;
+    } else if (this.player2.hasLost()) {
+      this.status = 'finished';
+      this.winner = 1;
     }
 
     // Cambiar turno solo si no hundió un barco
-    if (!result.isHit || result.sunkShip) {
+    if (!result.isHit) {
       this.switchTurn();
     }
 
@@ -112,12 +116,20 @@ class Game {
     if (this.isVsAI && this.currentTurn === 2 && this.status === 'playing') {
       setTimeout(() => {
         try {
-          this.makeAIShot();
+          const aiResult = this.makeAIShot();
+
+          // Si existe un callback registrado (desde el frontend)
+          if (typeof this.onAIShotComplete === "function") {
+            this.onAIShotComplete(aiResult, this.getGameState(1));
+            // Enviamos también el nuevo estado para actualizar React
+          }
+
         } catch (error) {
-          console.error('AI shot error:', error);
+          console.error("AI shot error:", error);
         }
-      }, 1000); // Delay de 1 segundo para simular "pensamiento"
+      }, 1000);
     }
+
 
     return result;
   }
@@ -172,7 +184,7 @@ class Game {
       isYourTurn: this.currentTurn === playerId,
       winner: this.winner,
       isVsAI: this.isVsAI,
-      
+
       // Tu tablero (con barcos visibles)
       yourBoard: {
         ships: player.board.ships.map(ship => ship.toJSON()),
@@ -194,7 +206,7 @@ class Game {
 
       // Historial reciente
       recentMoves: this.moveHistory.slice(-10),
-      
+
       createdAt: this.createdAt,
       updatedAt: this.updatedAt
     };
@@ -254,4 +266,4 @@ class Game {
   }
 }
 
-module.exports = Game;
+export default Game;

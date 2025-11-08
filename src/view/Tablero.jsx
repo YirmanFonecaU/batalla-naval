@@ -8,22 +8,18 @@ export default function Tablero() {
 
   // Estado para los barcos - inicialmente todos sin colocar
   const [ships, setShips] = useState([
-    { id: 1, size: 5, row: null, col: null, orientation: 'horizontal', placed: false }, // Portaaviones (5 casillas)
-    { id: 2, size: 4, row: null, col: null, orientation: 'horizontal', placed: false }, // Crucero (4 casillas)
-    { id: 3, size: 3, row: null, col: null, orientation: 'horizontal', placed: false }, // Submarino (3 casillas)
-    { id: 4, size: 2, row: null, col: null, orientation: 'horizontal', placed: false }, // Destructor 1 (2 casillas)
-    { id: 5, size: 2, row: null, col: null, orientation: 'horizontal', placed: false }, // Destructor 2 (2 casillas)
+    { id: 1, size: 5, row: null, col: null, orientation: 'horizontal', placed: false }, // Portaaviones
+    { id: 2, size: 4, row: null, col: null, orientation: 'horizontal', placed: false }, // Crucero
+    { id: 3, size: 3, row: null, col: null, orientation: 'horizontal', placed: false }, // Submarino
+    { id: 4, size: 2, row: null, col: null, orientation: 'horizontal', placed: false }, // Destructor 1
+    { id: 5, size: 2, row: null, col: null, orientation: 'horizontal', placed: false }, // Destructor 2
   ]);
 
-  // Estado para el barco que se está arrastrando
   const [draggedShip, setDraggedShip] = useState(null);
-
-  // Estado para mostrar preview durante el drag
   const [dragPreview, setDragPreview] = useState({ row: null, col: null, valid: false });
 
   const toggleRules = () => setShowRules(!showRules);
 
-  // Función para verificar si una posición está ocupada por algún barco
   const isPositionOccupied = (row, col, excludeShipId = null) => {
     return ships.some(ship => {
       if (!ship.placed || ship.id === excludeShipId) return false;
@@ -38,13 +34,11 @@ export default function Tablero() {
     });
   };
 
-  // Función para verificar si hay separación mínima (1 casilla) entre barcos
   const hasMinimumSeparation = (row, col, size, orientation, excludeShipId = null) => {
     for (let i = 0; i < size; i++) {
       const shipRow = orientation === 'horizontal' ? row : row + i;
       const shipCol = orientation === 'horizontal' ? col + i : col;
 
-      // Verificar las 8 casillas alrededor de cada segmento del barco
       for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
         for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
           const checkRow = shipRow + deltaRow;
@@ -61,16 +55,13 @@ export default function Tablero() {
     return true;
   };
 
-  // Función para validar si un barco puede ser colocado en una posición
   const canPlaceShip = (row, col, size, orientation, excludeShipId = null) => {
-    // Verificar límites del tablero
     if (orientation === 'horizontal') {
       if (col + size > 10) return false;
     } else {
       if (row + size > 10) return false;
     }
 
-    // Verificar que no se sobreponga con otros barcos
     for (let i = 0; i < size; i++) {
       const shipRow = orientation === 'horizontal' ? row : row + i;
       const shipCol = orientation === 'horizontal' ? col + i : col;
@@ -80,11 +71,9 @@ export default function Tablero() {
       }
     }
 
-    // Verificar separación mínima
     return hasMinimumSeparation(row, col, size, orientation, excludeShipId);
   };
 
-  // Funciones para manejar el drag and drop
   const handleDragStart = (e, ship) => {
     setDraggedShip(ship);
     e.dataTransfer.effectAllowed = 'move';
@@ -121,7 +110,6 @@ export default function Tablero() {
     setDragPreview({ row: null, col: null, valid: false });
   };
 
-  // Función para rotar un barco (clic derecho)
   const handleShipRightClick = (e, shipId) => {
     e.preventDefault();
     setShips(prevShips =>
@@ -130,8 +118,6 @@ export default function Tablero() {
           ? {
             ...ship,
             orientation: ship.orientation === 'horizontal' ? 'vertical' : 'horizontal',
-            // Si el barco está colocado, verificar que siga siendo válido después de rotar
-            // Si no está colocado, mantener el estado actual (false para barcos en la caja)
             placed: ship.placed ? canPlaceShip(ship.row, ship.col, ship.size,
               ship.orientation === 'horizontal' ? 'vertical' : 'horizontal', shipId) : ship.placed
           }
@@ -140,18 +126,15 @@ export default function Tablero() {
     );
   };
 
-  // Función para colocar barcos aleatoriamente
   const placeShipsRandomly = () => {
     const newShips = [...ships];
 
-    // Resetear todos los barcos
     newShips.forEach(ship => {
       ship.placed = false;
       ship.row = null;
       ship.col = null;
     });
 
-    // Colocar cada barco aleatoriamente
     newShips.forEach(ship => {
       let placed = false;
       let attempts = 0;
@@ -178,7 +161,6 @@ export default function Tablero() {
     setShips(newShips);
   };
 
-  // Función para remover un barco del tablero y devolverlo a la caja
   const removeShipFromBoard = (shipId) => {
     setShips(prevShips =>
       prevShips.map(ship =>
@@ -187,6 +169,23 @@ export default function Tablero() {
           : ship
       )
     );
+  };
+
+  // Función para iniciar el juego
+  const startGame = () => {
+    // Verificar que todos los barcos estén colocados
+    const allPlaced = ships.every(ship => ship.placed);
+    
+    if (!allPlaced) {
+      alert('¡Debes colocar todos los barcos antes de iniciar!');
+      return;
+    }
+
+    // Guardar los barcos en localStorage para usarlos en el juego
+    localStorage.setItem('playerShips', JSON.stringify(ships));
+    
+    // Navegar a la pantalla de juego
+    navigate("/juego");
   };
 
   return (
@@ -213,31 +212,28 @@ export default function Tablero() {
       )}
 
       <div className="game-layout">
-  {/* Caja de barcos a la izquierda */}
-  <div className="ships-section">
-    <button className="ships-header-btn">NUESTROS BARCOS</button>
-    <div className="ships-status-grid">
-      {ships.filter(ship => !ship.placed).map(ship => (
-        <div
-          key={ship.id}
-          className={`ship-status alive`}
-          draggable
-          onDragStart={(e) => handleDragStart(e, ship)}
-          onContextMenu={(e) => handleShipRightClick(e, ship.id)}
-        >
-          {Array.from({ length: ship.size }, (_, i) => (
-            <div key={i} className="ship-segment-status intact"></div>
-          ))}
+        <div className="ships-section">
+          <button className="ships-header-btn">NUESTROS BARCOS</button>
+          <div className="ships-status-grid">
+            {ships.filter(ship => !ship.placed).map(ship => (
+              <div
+                key={ship.id}
+                className="ship-status alive"
+                draggable
+                onDragStart={(e) => handleDragStart(e, ship)}
+                onContextMenu={(e) => handleShipRightClick(e, ship.id)}
+              >
+                {Array.from({ length: ship.size }, (_, i) => (
+                  <div key={i} className="ship-segment-status intact"></div>
+                ))}
+              </div>
+            ))}
+            {ships.filter(ship => !ship.placed).length === 0 && (
+              <p className="all-placed">✅ Todos los barcos colocados</p>
+            )}
+          </div>
         </div>
-      ))}
-      {ships.filter(ship => !ship.placed).length === 0 && (
-        <p className="all-placed">Todos los barcos colocados</p>
-      )}
-    </div>
-  </div>
 
-
-        {/* Tablero en el centro con botones debajo */}
         <div className="board-section">
           <div className="grid-container">
             <table className="game-board">
@@ -254,13 +250,9 @@ export default function Tablero() {
                   <tr key={row}>
                     <th>{row + 1}</th>
                     {Array.from({ length: 10 }, (_, col) => {
-                      // Verificar si esta casilla está ocupada por un barco
                       const isOccupied = isPositionOccupied(row, col);
-
-                      // Verificar si esta casilla está en el preview de drag
                       const isPreview = dragPreview.row === row && dragPreview.col === col;
 
-                      // Crear clases CSS dinámicas
                       let cellClasses = 'game-cell';
                       if (isOccupied) cellClasses += ' occupied';
                       if (isPreview) cellClasses += dragPreview.valid ? ' preview-valid' : ' preview-invalid';
@@ -274,7 +266,6 @@ export default function Tablero() {
                           onDrop={(e) => handleDrop(e, row, col)}
                           onDoubleClick={() => {
                             if (isOccupied) {
-                              // Encontrar el barco en esta posición y removerlo
                               const ship = ships.find(ship => {
                                 if (!ship.placed) return false;
                                 for (let i = 0; i < ship.size; i++) {
@@ -290,7 +281,6 @@ export default function Tablero() {
                           onContextMenu={(e) => {
                             if (isOccupied) {
                               e.preventDefault();
-                              // Encontrar el barco en esta posición y rotarlo
                               const ship = ships.find(ship => {
                                 if (!ship.placed) return false;
                                 for (let i = 0; i < ship.size; i++) {
@@ -303,7 +293,7 @@ export default function Tablero() {
                               if (ship) handleShipRightClick(e, ship.id);
                             }
                           }}
-                          title={isOccupied ? "Doble clic para remover | Clic derecho para rotar" : ""}
+                          title={isOccupied ? "Doble clic: remover | Clic derecho: rotar" : ""}
                         >
                         </td>
                       );
@@ -314,10 +304,9 @@ export default function Tablero() {
             </table>
           </div>
 
-          {/* Botones debajo del tablero */}
           <div className="board-buttons">
-            <button className="action-btn" onClick={placeShipsRandomly}>► Random</button>
-            <button className="action-btn" onClick={() => navigate("/juego")}>► Play</button>
+            <button className="action-btn" onClick={placeShipsRandomly}>🎲 Random</button>
+            <button className="action-btn" onClick={startGame}>▶️ Play</button>
           </div>
         </div>
       </div>

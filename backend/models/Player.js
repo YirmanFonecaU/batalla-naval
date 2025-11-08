@@ -1,5 +1,4 @@
-const Board = require('./Board');
-
+import Board from './Board.js';
 class Player {
   constructor(id, name, isAI = false) {
     this.id = id;
@@ -8,6 +7,17 @@ class Player {
     this.board = new Board();
     this.targetBoard = null; // Referencia al tablero del oponente
     this.lastShots = []; // Historial de disparos realizados
+    
+    // Estado de la IA mejorada
+    if (this.isAI) {
+      this.aiState = {
+        targetMode: false, // Modo de persecución de barco
+        currentTarget: null, // Barco que está siendo perseguido
+        targetQueue: [], // Cola de posiciones a atacar
+        hitSequence: [], // Secuencia de impactos del barco actual
+        probableDirection: null // 'horizontal' o 'vertical'
+      };
+    }
   }
 
   // Establecer el tablero objetivo (del oponente)
@@ -55,89 +65,233 @@ class Player {
     }
 
     const { row, col } = this.calculateBestShot();
-    return this.makeShot(row, col);
+    const result = this.makeShot(row, col);
+    
+    // Actualizar estado de la IA basado en el resultado
+    this.updateAIState(result);
+    
+    return result;
+  }
+
+  // IA: Actualizar estado después de un disparo
+  updateAIState(result) {
+    const { row, col, isHit, sunkShip } = result;
+
+    if (isHit) {
+      // Agregar a la secuencia de impactos
+      this.aiState.hitSequence.push({ row, col });
+      this.aiState.targetMode = true;
+
+      if (sunkShip) {
+        // Barco hundido - resetear modo de persecución
+        this.resetAITargetMode();
+      } else {
+        // Impacto pero no hundido - determinar dirección y agregar objetivos
+        this.determineDirection();
+        this.updateTargetQueue(row, col);
+      }
+    } else {
+      // Fallo - si estábamos persiguiendo, intentar otra dirección
+      if (this.aiState.targetMode && this.aiState.targetQueue.length === 0) {
+        this.tryAlternativeDirection();
+      }
+    }
+  }
+
+  // IA: Resetear modo de persecución
+  resetAITargetMode() {
+    this.aiState.targetMode = false;
+    this.aiState.currentTarget = null;
+    this.aiState.targetQueue = [];
+    this.aiState.hitSequence = [];
+    this.aiState.probableDirection = null;
+  }
+
+  // IA: Determinar dirección del barco
+  determineDirection() {
+    if (this.aiState.hitSequence.length < 2) {
+      return; // Necesitamos al menos 2 impactos para determinar dirección
+    }
+
+    const hits = this.aiState.hitSequence;
+    const lastHit = hits[hits.length - 1];
+    const prevHit = hits[hits.length - 2];
+
+    if (lastHit.row === prevHit.row) {
+      this.aiState.probableDirection = 'horizontal';
+    } else if (lastHit.col === prevHit.col) {
+      this.aiState.probableDirection = 'vertical';
+    }
+  }
+
+  // IA: Actualizar cola de objetivos
+  updateTargetQueue(row, col) {
+    // Limpiar cola actual
+    this.aiState.targetQueue = [];
+
+    if (this.aiState.probableDirection === 'horizontal') {
+      // Atacar en línea horizontal
+      this.addDirectionalTargets(row, col, 0, 1);  // Derecha
+      this.addDirectionalTargets(row, col, 0, -1); // Izquierda
+    } else if (this.aiState.probableDirection === 'vertical') {
+      // Atacar en línea vertical
+      this.addDirectionalTargets(row, col, 1, 0);  // Abajo
+      this.addDirectionalTargets(row, col, -1, 0); // Arriba
+    } else {
+      // Primer impacto - agregar todas las direcciones
+      this.addAdjacentTargets(row, col);
+    }
+  }
+
+  // IA: Agregar objetivos direccionales
+  addDirectionalTargets(row, col, deltaRow, deltaCol) {
+    const hits = this.aiState.hitSequence;
+    
+    // Encontrar el extremo de la secuencia de impactos en esta dirección
+    let currentRow = row;
+    let currentCol = col;
+    
+    // Moverse a través de los impactos en esta dirección
+    while (true) {
+      const nextRow = currentRow + deltaRow;
+      const nextCol = currentCol + deltaCol;
+      
+      // Verificar si la siguiente posición es un impacto conocido
+      const isKnownHit = hits.some(hit => hit.row === nextRow && hit.col === nextCol);
+      
+      if (isKnownHit) {
+        currentRow = nextRow;
+        currentCol = nextCol;
+      } else {
+        break;
+      }
+    }
+    
+    // Agregar la siguiente posición en esta dirección
+    const targetRow = currentRow + deltaRow;
+    const targetCol = currentCol + deltaCol;
+    
+    if (this.isValidTarget(targetRow, targetCol)) {
+      this.aiState.targetQueue.push({ row: targetRow, col: targetCol });
+    }
+  }
+
+  // IA: Agregar objetivos adyacentes (todas direcciones)
+  addAdjacentTargets(row, col) {
+    const directions = [
+      { row: -1, col: 0 },  // Arriba
+      { row: 1, col: 0 },   // Abajo
+      { row: 0, col: -1 },  // Izquierda
+      { row: 0, col: 1 }    // Derecha
+    ];
+
+    for (const dir of directions) {
+      const newRow = row + dir.row;
+      const newCol = col + dir.col;
+      
+      if (this.isValidTarget(newRow, newCol)) {
+        this.aiState.targetQueue.push({ row: newRow, col: newCol });
+      }
+    }
+  }
+
+  // IA: Intentar dirección alternativa
+  tryAlternativeDirection() {
+    if (this.aiState.hitSequence.length === 0) {
+      this.resetAITargetMode();
+      return;
+    }
+
+    // Volver al primer impacto y probar otras direcciones
+    const firstHit = this.aiState.hitSequence[0];
+    this.addAdjacentTargets(firstHit.row, firstHit.col);
+  }
+
+  // IA: Verificar si un objetivo es válido
+  isValidTarget(row, col) {
+    if (!this.targetBoard.isValidPosition(row, col)) {
+      return false;
+    }
+    
+    const alreadyShot = this.lastShots.some(shot => 
+      shot.row === row && shot.col === col
+    );
+    
+    return !alreadyShot;
   }
 
   // IA: Calcular mejor disparo
   calculateBestShot() {
-    const boardSize = this.targetBoard.size;
-    
-    // Buscar disparos que fueron impactos pero el barco no está hundido
-    const hits = this.lastShots.filter(shot => shot.isHit);
-    const unfinishedHits = hits.filter(hit => {
-      const ship = this.targetBoard.getShipAt(hit.row, hit.col);
-      return ship && !ship.isSunk();
-    });
-
-    if (unfinishedHits.length > 0) {
-      // Estrategia: Continuar atacando alrededor de impactos no finalizados
-      return this.getAdjacentTarget(unfinishedHits);
-    } else {
-      // Estrategia: Disparo aleatorio con patrón de tablero de ajedrez
-      return this.getRandomCheckerboardTarget();
+    // Prioridad 1: Usar cola de objetivos si estamos en modo persecución
+    if (this.aiState.targetMode && this.aiState.targetQueue.length > 0) {
+      // Obtener el siguiente objetivo de la cola
+      return this.aiState.targetQueue.shift();
     }
-  }
 
-  // Obtener objetivo adyacente a impactos previos
-  getAdjacentTarget(hits) {
-    for (const hit of hits) {
-      const directions = [
-        { row: -1, col: 0 }, // Arriba
-        { row: 1, col: 0 },  // Abajo
-        { row: 0, col: -1 }, // Izquierda
-        { row: 0, col: 1 }   // Derecha
-      ];
-
-      for (const dir of directions) {
-        const newRow = hit.row + dir.row;
-        const newCol = hit.col + dir.col;
-
-        if (this.targetBoard.isValidPosition(newRow, newCol)) {
-          const alreadyShot = this.lastShots.some(shot => 
-            shot.row === newRow && shot.col === newCol
-          );
-          
-          if (!alreadyShot) {
-            return { row: newRow, col: newCol };
-          }
-        }
+    // Prioridad 2: Buscar impactos sin finalizar
+    const unfinishedHits = this.findUnfinishedHits();
+    if (unfinishedHits.length > 0) {
+      // Reactivar modo persecución
+      this.aiState.targetMode = true;
+      this.aiState.hitSequence = [unfinishedHits[0]];
+      this.updateTargetQueue(unfinishedHits[0].row, unfinishedHits[0].col);
+      
+      if (this.aiState.targetQueue.length > 0) {
+        return this.aiState.targetQueue.shift();
       }
     }
 
-    // Si no hay adyacentes disponibles, usar estrategia aleatoria
-    return this.getRandomCheckerboardTarget();
+    // Prioridad 3: Patrón de tablero de ajedrez
+    const checkerboardShot = this.getCheckerboardTarget();
+    if (checkerboardShot) {
+      return checkerboardShot;
+    }
+
+    // Prioridad 4: Cualquier posición disponible
+    return this.getRandomTarget();
   }
 
-  // Obtener objetivo aleatorio con patrón de tablero de ajedrez
-  getRandomCheckerboardTarget() {
+  // IA: Encontrar impactos sin finalizar
+  findUnfinishedHits() {
+    const hits = this.lastShots.filter(shot => shot.isHit);
+    
+    return hits.filter(hit => {
+      const ship = this.targetBoard.getShipAt(hit.row, hit.col);
+      return ship && !ship.isSunk();
+    });
+  }
+
+  // IA: Obtener objetivo con patrón de tablero de ajedrez
+  getCheckerboardTarget() {
     const availablePositions = [];
     
     for (let row = 0; row < this.targetBoard.size; row++) {
       for (let col = 0; col < this.targetBoard.size; col++) {
-        // Patrón de tablero de ajedrez (más eficiente para encontrar barcos)
+        // Patrón de tablero de ajedrez
         if ((row + col) % 2 === 0) {
-          const alreadyShot = this.lastShots.some(shot => 
-            shot.row === row && shot.col === col
-          );
-          
-          if (!alreadyShot) {
+          if (this.isValidTarget(row, col)) {
             availablePositions.push({ row, col });
           }
         }
       }
     }
 
-    // Si no hay posiciones en patrón de ajedrez, usar cualquier posición
     if (availablePositions.length === 0) {
-      for (let row = 0; row < this.targetBoard.size; row++) {
-        for (let col = 0; col < this.targetBoard.size; col++) {
-          const alreadyShot = this.lastShots.some(shot => 
-            shot.row === row && shot.col === col
-          );
-          
-          if (!alreadyShot) {
-            availablePositions.push({ row, col });
-          }
+      return null;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availablePositions.length);
+    return availablePositions[randomIndex];
+  }
+
+  // IA: Obtener objetivo aleatorio
+  getRandomTarget() {
+    const availablePositions = [];
+    
+    for (let row = 0; row < this.targetBoard.size; row++) {
+      for (let col = 0; col < this.targetBoard.size; col++) {
+        if (this.isValidTarget(row, col)) {
+          availablePositions.push({ row, col });
         }
       }
     }
@@ -197,8 +351,14 @@ class Player {
     const player = new Player(data.id, data.name, data.isAI);
     player.board = Board.fromJSON(data.board);
     player.lastShots = data.lastShots || [];
+    
+    // Restaurar estado de IA si es necesario
+    if (player.isAI && data.aiState) {
+      player.aiState = data.aiState;
+    }
+    
     return player;
   }
 }
 
-module.exports = Player;
+export default Player;

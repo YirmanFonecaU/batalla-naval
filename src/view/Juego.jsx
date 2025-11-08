@@ -2,308 +2,189 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles/Style.css";
 
+// Importar las clases de backend
+import Game from "../../backend/models/Game.js";
 export default function Juego() {
   const navigate = useNavigate();
-  
-  // Estado para nuestros barcos (viene del tablero anterior) - configuración correcta
-  const [ourShips, setOurShips] = useState([
-    { id: 1, size: 5, row: 9, col: 4, orientation: 'horizontal', placed: true, hits: [] }, // Portaaviones (5 casillas)
-    { id: 2, size: 4, row: 1, col: 5, orientation: 'vertical', placed: true, hits: [] },   // Crucero (4 casillas)
-    { id: 3, size: 3, row: 5, col: 1, orientation: 'horizontal', placed: true, hits: [] }, // Submarino (3 casillas)
-    { id: 4, size: 2, row: 6, col: 6, orientation: 'horizontal', placed: true, hits: [] }, // Destructor 1 (2 casillas)
-    { id: 5, size: 2, row: 7, col: 2, orientation: 'vertical', placed: true, hits: [] },   // Destructor 2 (2 casillas)
-  ]);
+  const [game, setGame] = useState(null);
+  const [gameState, setGameState] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Estado para los barcos enemigos (simulados) - configuración correcta
-  const [enemyShips, setEnemyShips] = useState([
-    { id: 1, size: 5, row: 1, col: 1, orientation: 'horizontal', hits: [] }, // Portaaviones (5 casillas)
-    { id: 2, size: 4, row: 4, col: 7, orientation: 'vertical', hits: [] },   // Crucero (4 casillas)
-    { id: 3, size: 3, row: 8, col: 2, orientation: 'horizontal', hits: [] }, // Submarino (3 casillas)
-    { id: 4, size: 2, row: 0, col: 8, orientation: 'vertical', hits: [] },   // Destructor 1 (2 casillas)
-    { id: 5, size: 2, row: 6, col: 0, orientation: 'horizontal', hits: [] }, // Destructor 2 (2 casillas)
-  ]);
-
-  // Estado para los ataques del enemigo en nuestro tablero
-  const [enemyAttacks, setEnemyAttacks] = useState([]);
-  
-  // Estado para nuestros ataques en el tablero enemigo
-  const [ourAttacks, setOurAttacks] = useState([]);
-  
-  // Estado para el turno (true = nuestro turno, false = turno enemigo)
-  const [isOurTurn, setIsOurTurn] = useState(true);
-
-  // Estado para casillas de agua marcadas automáticamente
-  const [autoWaterMarks, setAutoWaterMarks] = useState([]);
-
-    // 🔹 Guardar progreso automáticamente cuando cambie algo importante
+  // Inicializar el juego cuando se monta el componente
   useEffect(() => {
-    const partida = {
-      ourShips,
-      enemyShips,
-      enemyAttacks,
-      ourAttacks,
-      isOurTurn,
-      autoWaterMarks
-    };
-    localStorage.setItem("batalla-naval-checkpoint", JSON.stringify(partida));
-  }, [ourShips, enemyShips, enemyAttacks, ourAttacks, isOurTurn, autoWaterMarks]);
-
-
-  // Función para validar configuración de barcos
-  const validateShipConfiguration = (ships) => {
-    const sizes = ships.map(ship => ship.size).sort((a, b) => b - a);
-    const expectedSizes = [5, 4, 3, 2, 2].sort((a, b) => b - a);
-    
-    console.log('Configuración actual de barcos:', sizes);
-    console.log('Configuración esperada:', expectedSizes);
-    
-    return JSON.stringify(sizes) === JSON.stringify(expectedSizes);
-  };
-
-  // Validar configuración al cargar
-  useEffect(() => {
-    if (!validateShipConfiguration(enemyShips)) {
-      console.warn('⚠️ Configuración de barcos enemigos incorrecta');
-    }
-    if (!validateShipConfiguration(ourShips)) {
-      console.warn('⚠️ Configuración de nuestros barcos incorrecta');
-    }
+    initializeGame();
   }, []);
 
-  // Función para verificar si todos los barcos de un jugador están hundidos
-  const areAllShipsSunk = (ships, attacks) => {
-    return ships.every(ship => {
-      const positions = getShipPositions(ship);
-      return positions.every(pos =>
-        attacks.some(attack => attack.row === pos.row && attack.col === pos.col && attack.isHit)
-      );
-    });
-  };
-
-  // Verificar estado del juego y redirigir si es necesario
-  useEffect(() => {
-    // Verificar si hemos ganado (todos los barcos enemigos hundidos)
-    if (areAllShipsSunk(enemyShips, ourAttacks)) {
-      setTimeout(() => {
-        navigate("/ganaste");
-      }, 1000); // Delay para que el jugador vea el último impacto
-      return;
-    }
-
-    // Verificar si hemos perdido (todos nuestros barcos hundidos)
-    if (areAllShipsSunk(ourShips, enemyAttacks)) {
-      setTimeout(() => {
-        navigate("/perdiste");
-      }, 1000); // Delay para que el jugador vea el último impacto
-      return;
-    }
-  }, [ourAttacks, enemyAttacks, navigate]);
-
-  // Función para obtener todas las posiciones que ocupa un barco
-  const getShipPositions = (ship) => {
-    const positions = [];
-    for (let i = 0; i < ship.size; i++) {
-      const row = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
-      const col = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
-      positions.push({ row, col });
-    }
-    return positions;
-  };
-
-  // Función para obtener casillas alrededor de un barco
-  const getSurroundingPositions = (ship) => {
-    const positions = [];
-    const shipPositions = getShipPositions(ship);
-    
-    shipPositions.forEach(({ row, col }) => {
-      // Verificar las 8 direcciones alrededor de cada segmento
-      for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
-        for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
-          if (deltaRow === 0 && deltaCol === 0) continue; // Skip la posición del barco
-          
-          const newRow = row + deltaRow;
-          const newCol = col + deltaCol;
-          
-          // Verificar límites del tablero
-          if (newRow >= 0 && newRow < 10 && newCol >= 0 && newCol < 10) {
-            // No agregar si ya está en la lista
-            if (!positions.some(pos => pos.row === newRow && pos.col === newCol)) {
-              // No agregar si es posición de otro barco
-              if (!shipPositions.some(pos => pos.row === newRow && pos.col === newCol)) {
-                positions.push({ row: newRow, col: newCol });
-              }
-            }
-          }
-        }
+  const initializeGame = () => {
+    try {
+      // Obtener los barcos del localStorage (vienen de Tablero.jsx)
+      const savedShips = localStorage.getItem('playerShips');
+      
+      if (!savedShips) {
+        console.error('No se encontraron barcos guardados');
+        navigate('/tablero');
+        return;
       }
-    });
-    
-    return positions;
-  };
 
-  // Función para verificar si un barco está completamente hundido
-  const isShipSunk = (ship) => {
-    return ship.hits.length === ship.size;
-  };
+      const playerShips = JSON.parse(savedShips);
 
-  // Función para marcar agua alrededor de barcos hundidos
-  const markWaterAroundSunkShip = (ship) => {
-    const surroundingPositions = getSurroundingPositions(ship);
-    setAutoWaterMarks(prev => {
-      const newMarks = [...prev];
-      surroundingPositions.forEach(pos => {
-        if (!newMarks.some(mark => mark.row === pos.row && mark.col === pos.col)) {
-          newMarks.push(pos);
-        }
-      });
-      return newMarks;
-    });
-  };
+      // Crear una nueva instancia del juego vs IA
+      const newGame = new Game('game-' + Date.now(), 'Jugador', null, true);
 
-  // Función para verificar si una posición está ocupada por barcos enemigos
-  const isEnemyShipAt = (row, col) => {
-    return enemyShips.some(ship => {
-      const positions = getShipPositions(ship);
-      return positions.some(pos => pos.row === row && pos.col === col);
-    });
-  };
-
-  // Función para verificar si una posición está ocupada por nuestros barcos
-  const isOurShipAt = (row, col) => {
-    return ourShips.some(ship => {
-      const positions = getShipPositions(ship);
-      return positions.some(pos => pos.row === row && pos.col === col);
-    });
-  };
-
-  // Función para verificar si una posición ha sido atacada
-  const isPositionAttacked = (row, col, attacksArray) => {
-    return attacksArray.some(attack => attack.row === row && attack.col === col);
-  };
-
-  // Función para realizar un ataque en el tablero enemigo
-  const handleAttack = (row, col) => {
-    if (!isOurTurn || isPositionAttacked(row, col, ourAttacks)) return;
-
-    // Verificar si hay un barco enemigo en esta posición
-    const isHit = isEnemyShipAt(row, col);
-    
-    const newAttack = { row, col, isHit };
-    setOurAttacks(prev => [...prev, newAttack]);
-    
-    if (isHit) {
-      // Actualizar hits del barco enemigo
-      setEnemyShips(prev => prev.map(ship => {
-        const positions = getShipPositions(ship);
-        const hitPosition = positions.find(pos => pos.row === row && pos.col === col);
-        
-        if (hitPosition) {
-          const newHits = [...ship.hits, { row, col }];
-          const updatedShip = { ...ship, hits: newHits };
-          
-          // Verificar si el barco se hundió
-          if (isShipSunk(updatedShip)) {
-            // Marcar agua alrededor del barco hundido
-            setTimeout(() => markWaterAroundSunkShip(updatedShip), 500);
-          }
-          
-          return updatedShip;
-        }
-        return ship;
+      // Configurar los barcos del jugador
+      const shipsData = playerShips.map(ship => ({
+        id: ship.id,
+        row: ship.row,
+        col: ship.col,
+        orientation: ship.orientation
       }));
-      
-      // Si acierta, puede atacar de nuevo (no cambiar turno)
-      return;
+
+      newGame.setPlayerShips(1, shipsData);
+
+      // Configurar callback para cuando la IA dispare
+      newGame.onAIShotComplete = (aiResult, newGameState) => {
+        // Actualizar el estado del juego después de que la IA dispare
+        setGameState(newGameState);
+      };
+
+      setGame(newGame);
+      setGameState(newGame.getGameState(1));
+      setIsLoading(false);
+
+    } catch (error) {
+      console.error('Error al inicializar el juego:', error);
+      alert('Error al iniciar el juego. Volviendo a configuración...');
+      navigate('/tablero');
     }
-    
-    // Si falla, cambiar turno
-    setIsOurTurn(false);
-    
-    // Simular ataque enemigo después de un delay
+  };
+
+  // Verificar condición de victoria/derrota
+  useEffect(() => {
+    if (!gameState || gameState.status !== 'finished') return;
+
     setTimeout(() => {
-      simulateEnemyAttack();
-    }, 1500);
-  };
+      if (gameState.winner === 1) {
+        navigate('/ganaste');
+      } else {
+        navigate('/perdiste');
+      }
+    }, 1000);
+  }, [gameState, navigate]);
 
-  // Función para simular ataque enemigo
-  const simulateEnemyAttack = () => {
-    let row, col;
-    do {
-      row = Math.floor(Math.random() * 10);
-      col = Math.floor(Math.random() * 10);
-    } while (isPositionAttacked(row, col, enemyAttacks));
+  // Manejar click en el tablero enemigo
+  const handleAttackClick = (row, col) => {
+    if (!game || !gameState) return;
+    if (gameState.status !== 'playing') return;
+    if (!gameState.isYourTurn) return;
 
-    const isHit = isOurShipAt(row, col);
-    const newAttack = { row, col, isHit };
-    setEnemyAttacks(prev => [...prev, newAttack]);
-    
-    if (isHit) {
-      // Actualizar hits de nuestros barcos
-      setOurShips(prev => prev.map(ship => {
-        const positions = getShipPositions(ship);
-        const hitPosition = positions.find(pos => pos.row === row && pos.col === col);
-        
-        if (hitPosition) {
-          const newHits = [...ship.hits, { row, col }];
-          return { ...ship, hits: newHits };
-        }
-        return ship;
-      }));
-      
-      // Si el enemigo acierta, puede atacar de nuevo
-      setTimeout(() => {
-        simulateEnemyAttack();
-      }, 1000);
-    } else {
-      setIsOurTurn(true);
+    // Verificar si ya se disparó en esta posición
+    const alreadyShot = gameState.opponentBoard.shots.some(
+      shot => shot.row === row && shot.col === col
+    );
+
+    if (alreadyShot) return;
+
+    try {
+      // Realizar el disparo
+      const result = game.makeShot(1, row, col);
+
+      // Actualizar el estado del juego
+      const newState = game.getGameState(1);
+      setGameState(newState);
+
+      // Si es turno de la IA, ya se disparará automáticamente
+      // gracias al setTimeout en Game.js
+
+    } catch (error) {
+      console.error('Error al realizar disparo:', error);
     }
   };
 
-  // Función para obtener el estado de una celda en nuestro tablero
-  const getOurCellState = (row, col) => {
-    const attack = enemyAttacks.find(a => a.row === row && a.col === col);
-    const hasShip = isOurShipAt(row, col);
-    
-    if (attack) {
-      return attack.isHit ? 'hit' : 'miss';
-    }
-    return hasShip ? 'ship' : 'empty';
-  };
-
-  // Función para obtener el estado de una celda en el tablero enemigo
+  // Función para obtener el estado visual de una celda del tablero enemigo
   const getEnemyCellState = (row, col) => {
-    const attack = ourAttacks.find(a => a.row === row && a.col === col);
-    const isAutoWater = autoWaterMarks.some(mark => mark.row === row && mark.col === col);
-    
-    if (attack) {
-      return attack.isHit ? 'hit' : 'miss';
+    if (!gameState) return 'empty';
+
+    const shot = gameState.opponentBoard.shots.find(
+      s => s.row === row && s.col === col
+    );
+
+    if (shot) {
+      return shot.isHit ? 'hit' : 'miss';
     }
-    if (isAutoWater) {
-      return 'auto-water';
-    }
+
     return 'empty';
   };
 
-  // Determina si una celda es parte de un barco enemigo hundido
-  const isSunkShipCell = (row, col) => {
-    for (const ship of enemyShips) {
-      const positions = getShipPositions(ship);
-      // Un barco está hundido si todos sus segmentos han sido impactados
-      const allHit = positions.every(pos =>
-        ourAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit)
-      );
-      if (allHit) {
-        // ¿Esta celda es parte de este barco?
-        if (positions.some(pos => pos.row === row && pos.col === col)) {
-          // ¿Y fue disparada?
-          if (ourAttacks.some(a => a.row === row && a.col === col && a.isHit)) {
-            return true;
-          }
-        }
+  // Función para verificar si una celda del enemigo es de un barco hundido
+  const isEnemySunkShipCell = (row, col) => {
+    if (!gameState || !gameState.opponentBoard.sunkShips) return false;
+
+    return gameState.opponentBoard.sunkShips.some(ship => {
+      for (let i = 0; i < ship.size; i++) {
+        const shipRow = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
+        const shipCol = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
+        
+        if (shipRow === row && shipCol === col) return true;
       }
-    }
-    return false;
+      return false;
+    });
   };
+
+  // Función para obtener el estado visual de una celda de nuestro tablero
+  const getOurCellState = (row, col) => {
+    if (!gameState) return 'empty';
+
+    // Verificar si hay un disparo del enemigo en esta posición
+    const shot = gameState.yourBoard.shots.find(
+      s => s.row === row && s.col === col
+    );
+
+    if (shot) {
+      return shot.isHit ? 'hit' : 'miss';
+    }
+
+    // Verificar si hay un barco nuestro en esta posición
+    const hasShip = gameState.yourBoard.ships.some(ship => {
+      if (!ship.placed) return false;
+      
+      for (let i = 0; i < ship.size; i++) {
+        const shipRow = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
+        const shipCol = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
+        
+        if (shipRow === row && shipCol === col) return true;
+      }
+      return false;
+    });
+
+    return hasShip ? 'ship' : 'empty';
+  };
+
+  // Función para obtener el estado de los barcos (para la visualización lateral)
+  const getShipSegments = (ship, isPlayer = true) => {
+    const shots = isPlayer ? gameState.yourBoard.shots : gameState.opponentBoard.shots;
+    const segments = [];
+
+    for (let i = 0; i < ship.size; i++) {
+      const segRow = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
+      const segCol = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
+
+      const isHit = shots.some(
+        shot => shot.row === segRow && shot.col === segCol && shot.isHit
+      );
+
+      segments.push({ isHit });
+    }
+
+    return segments;
+  };
+
+  if (isLoading || !gameState) {
+    return (
+      <div className="game-container">
+        <div className="loading">Cargando juego...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="game-container">
@@ -314,97 +195,152 @@ export default function Juego() {
       <div className="game-layout-with-ships">
         {/* Sección de barcos (izquierda) */}
         <div className="ships-container-left">
+          {/* Nuestros barcos */}
           <div className="ships-status-section">
             <div className="ships-header-btn">NUESTROS BARCOS</div>
             <div className="ships-status-grid">
-              {ourShips.map(ship => {
-                const positions = getShipPositions(ship);
-                const allHit = positions.every(pos =>
-                  enemyAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit)
-                );
+              {gameState.yourBoard.ships.map(ship => {
+                const segments = getShipSegments(ship, true);
+                const allHit = segments.every(seg => seg.isHit);
                 
                 return (
                   <div key={ship.id} className={`ship-status ${allHit ? 'sunk' : 'alive'}`}>
-                    {Array.from({ length: ship.size }, (_, i) => {
-                      const pos = positions[i];
-                      const isHit = enemyAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit);
-                      return (
-                        <div key={i} className={`ship-segment-status ${isHit ? 'hit' : 'intact'}`}></div>
-                      );
-                    })}
+                    {segments.map((seg, i) => (
+                      <div 
+                        key={i} 
+                        className={`ship-segment-status ${seg.isHit ? 'hit' : 'intact'}`}
+                      />
+                    ))}
                   </div>
                 );
               })}
             </div>
           </div>
 
+          {/* Barcos rivales */}
           <div className="ships-status-section">
             <div className="ships-header-btn">BARCOS RIVALES</div>
             <div className="ships-status-grid">
-              {enemyShips.map(ship => {
-                const positions = getShipPositions(ship);
-                const allHit = positions.every(pos =>
-                  ourAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit)
-                );
-                
-                return (
-                  <div key={ship.id} className={`ship-status ${allHit ? 'sunk' : 'alive'}`}>
-                    {Array.from({ length: ship.size }, (_, i) => {
-                      const pos = positions[i];
-                      const isHit = ourAttacks.some(a => a.row === pos.row && a.col === pos.col && a.isHit);
-                      return (
-                        <div key={i} className={`ship-segment-status ${isHit ? 'hit' : 'intact'}`}></div>
-                      );
-                    })}
+              {gameState.opponentBoard.sunkShips && gameState.opponentBoard.sunkShips.length > 0 ? (
+                gameState.opponentBoard.sunkShips.map(ship => {
+                  const segments = getShipSegments(ship, false);
+                  
+                  return (
+                    <div key={ship.id} className="ship-status sunk">
+                      {segments.map((seg, i) => (
+                        <div 
+                          key={i} 
+                          className="ship-segment-status hit"
+                        />
+                      ))}
+                    </div>
+                  );
+                })
+              ) : (
+                // Mostrar barcos genéricos si no hay hundidos
+                [5, 4, 3, 2, 2].map((size, idx) => (
+                  <div key={idx} className="ship-status alive">
+                    {Array.from({ length: size }, (_, i) => (
+                      <div key={i} className="ship-segment-status intact" />
+                    ))}
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
           </div>
         </div>
 
-        {/* Tablero central */}
-        <div className="board-section">
-          <h2 className="board-title">{isOurTurn ? "Tu Turno" : "Turno Rival"}</h2>
-          <table className="game-board">
-            <thead>
-              <tr>
-                <th></th>
-                {Array.from({ length: 10 }, (_, i) => (
-                  <th key={i}>{String.fromCharCode(65 + i)}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 10 }, (_, row) => (
-                <tr key={row}>
-                  <th>{row + 1}</th>
-                  {Array.from({ length: 10 }, (_, col) => {
-                    const cellState = getEnemyCellState(row, col);
-                    const isClickable = isOurTurn && cellState === 'empty';
-                    const sunk = isSunkShipCell(row, col);
-                    return (
-                      <td
-                        key={col}
-                        className={`game-cell ${cellState} ${sunk ? 'sunk-ship' : ''} ${isClickable ? 'clickable' : ''}`}
-                        onClick={() => isClickable && handleAttack(row, col)}
-                      >
-                        {cellState === 'hit' && '💥'}
-                        {cellState === 'miss' && '💧'}
-                        {cellState === 'auto-water' && '💧'}
-                      </td>
-                    );
-                  })}
+        {/* Tableros centrales */}
+        <div className="boards-wrapper">
+          {/* Tablero enemigo (arriba) */}
+          <div className="board-section">
+            <h2 className="board-title">
+              Tablero Enemigo {gameState.isYourTurn ? "(Tu Turno)" : "(Turno Rival)"}
+            </h2>
+            <table className="game-board">
+              <thead>
+                <tr>
+                  <th></th>
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <th key={i}>{String.fromCharCode(65 + i)}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {Array.from({ length: 10 }, (_, row) => (
+                  <tr key={row}>
+                    <th>{row + 1}</th>
+                    {Array.from({ length: 10 }, (_, col) => {
+                      const cellState = getEnemyCellState(row, col);
+                      const isSunk = isEnemySunkShipCell(row, col);
+                      const isClickable = gameState.isYourTurn && cellState === 'empty';
+                      
+                      return (
+                        <td
+                          key={col}
+                          className={`game-cell ${cellState} ${isSunk ? 'sunk-ship' : ''} ${isClickable ? 'clickable' : ''}`}
+                          onClick={() => handleAttackClick(row, col)}
+                        >
+                          {cellState === 'hit' && '💥'}
+                          {cellState === 'miss' && '💧'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Nuestro tablero (abajo) */}
+          <div className="board-section">
+            <h2 className="board-title">Tu Tablero</h2>
+            <table className="game-board">
+              <thead>
+                <tr>
+                  <th></th>
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <th key={i}>{String.fromCharCode(65 + i)}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 10 }, (_, row) => (
+                  <tr key={row}>
+                    <th>{row + 1}</th>
+                    {Array.from({ length: 10 }, (_, col) => {
+                      const cellState = getOurCellState(row, col);
+                      
+                      return (
+                        <td
+                          key={col}
+                          className={`game-cell ${cellState}`}
+                        >
+                          {cellState === 'hit' && '💥'}
+                          {cellState === 'miss' && '💧'}
+                          {cellState === 'ship' && '🚢'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       
-      <div className="board-buttons">
-        <button className="action-btn" onClick={() => navigate("/ganaste")}>Pantalla de Ganaste</button>
-        <button className="action-btn" onClick={() => navigate("/perdiste")}>Pantalla de Perdiste</button>
+      {/* Estadísticas */}
+      <div className="stats-section">
+        <div className="stat-box">
+          <strong>Tus disparos:</strong> {gameState.yourStats.totalShots}
+        </div>
+        <div className="stat-box">
+          <strong>Precisión:</strong> {gameState.yourStats.accuracy}%
+        </div>
+        <div className="stat-box">
+          <strong>Impactos:</strong> {gameState.yourStats.hits}
+        </div>
       </div>
     </div>
   );

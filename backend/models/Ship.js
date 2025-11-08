@@ -80,5 +80,5 @@ class Ship {
     return ship;
   }
 }
-
-module.exports = Ship;
+export default Ship;
+//module.exports = Ship;

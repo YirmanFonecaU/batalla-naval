@@ -1,5 +1,4 @@
-const Ship = require('./Ship');
-
+import Ship from './Ship.js';
 class Board {
   constructor() {
     this.size = 10; // Tablero 10x10
@@ -178,5 +177,5 @@ class Board {
     return board;
   }
 }
-
-module.exports = Board;
+export default Board;
+//module.exports = Board;
