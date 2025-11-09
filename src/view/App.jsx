@@ -1,9 +1,13 @@
 import React from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+
 import Tablero from "./Tablero";
 import Juego from "./Juego";
 import Ganaste from "./Ganaste";
 import Perdiste from "./Perdiste";
+import Multiplayer  from "./Multiplayer";
+import CrearPartida from "./CrearPartida";
+import UnirsePartida from "./UnirsePartida";
 import './styles/App.css';
 
 // Componente principal de la pantalla de inicio
@@ -15,7 +19,7 @@ const Home = () => {
   };
 
   const handlePlayFriend = () => {
-    navigate("/tablero");
+    navigate("/multiplayer"); 
   };
 
   return (
@@ -41,8 +45,11 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/tablero" element={<Tablero />} />
+      <Route path="/multiplayer" element={<Multiplayer />} />
       <Route path="/juego" element={<Juego />} />
       <Route path="/ganaste" element={<Ganaste />} />
+      <Route path="/crearPartida" element={<CrearPartida />} />
+      <Route path="/unirsePartida" element={<UnirsePartida />} />
       <Route path="/perdiste" element={<Perdiste />} />
     </Routes>
   );
