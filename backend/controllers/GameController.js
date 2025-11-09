@@ -1,4 +1,7 @@
+
 import Game from '../models/Game.js';
+import GamePersistenceManager from '../persistence/GamePersistenceManager.js';
+
 
 
 class GameController {
@@ -130,39 +133,48 @@ class GameController {
   }
 
   // Realizar disparo
-  makeShot(req, res) {
-    try {
-      const { gameId } = req.params;
-      const { playerId, row, col } = req.body;
+makeShot(req, res) {
+  try {
+    const { gameId } = req.params;
+    const { playerId, row, col } = req.body;
 
-      const game = this.games.get(gameId);
-      if (!game) {
-        return res.status(404).json({ 
-          error: 'Game not found' 
-        });
-      }
-
-      if (typeof row !== 'number' || typeof col !== 'number' || 
-          row < 0 || row >= 10 || col < 0 || col >= 10) {
-        return res.status(400).json({ 
-          error: 'Invalid coordinates' 
-        });
-      }
-
-      const result = game.makeShot(playerId, row, col);
-
-      res.json({
-        success: true,
-        shot: result,
-        gameState: game.getGameState(playerId)
-      });
-    } catch (error) {
-      res.status(400).json({ 
-        error: 'Failed to make shot', 
-        details: error.message 
+    const game = this.games.get(gameId);
+    if (!game) {
+      return res.status(404).json({ 
+        error: 'Game not found' 
       });
     }
+
+    if (typeof row !== 'number' || typeof col !== 'number' || 
+        row < 0 || row >= 10 || col < 0 || col >= 10) {
+      return res.status(400).json({ 
+        error: 'Invalid coordinates' 
+      });
+    }
+
+    const result = game.makeShot(playerId, row, col);
+
+    // 🔥 LOG TEMPORAL: Verificar que llega aquí
+    console.log(`🎯 DISPARO RECIBIDO: ${playerId} -> [${row}, ${col}] en ${gameId}`);
+
+    // Auto-guardar en segundo plano (no bloquea la respuesta)
+    console.log(`💾 INICIANDO auto-guardado para ${gameId}...`);
+    GamePersistenceManager.autoSaveGame(gameId, game.getGameState(playerId))
+      .then(() => console.log(`✅ AUTO-GUARDADO EXITOSO: ${gameId}`))
+      .catch(error => console.error(`❌ ERROR auto-guardando ${gameId}:`, error));
+
+    res.json({
+      success: true,
+      shot: result,
+      gameState: game.getGameState(playerId)
+    });
+  } catch (error) {
+    res.status(400).json({ 
+      error: 'Failed to make shot', 
+      details: error.message 
+    });
   }
+}
 
   // Obtener estado del juego
   getGameState(req, res) {
