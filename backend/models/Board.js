@@ -1,4 +1,4 @@
-import Ship from './Ship.js';
+import Ship from "./Ship.js";
 class Board {
   constructor() {
     this.size = 10; // Tablero 10x10
@@ -14,7 +14,7 @@ class Board {
       new Ship(2, 4), // Crucero
       new Ship(3, 3), // Submarino
       new Ship(4, 2), // Destructor 1
-      new Ship(5, 2)  // Destructor 2
+      new Ship(5, 2), // Destructor 2
     ];
   }
 
@@ -25,7 +25,7 @@ class Board {
 
   // Verificar si una posición está ocupada por algún barco
   isPositionOccupied(row, col, excludeShipId = null) {
-    return this.ships.some(ship => {
+    return this.ships.some((ship) => {
       if (!ship.placed || ship.id === excludeShipId) return false;
       return ship.occupiesPosition(row, col);
     });
@@ -34,8 +34,8 @@ class Board {
   // Verificar separación mínima entre barcos
   hasMinimumSeparation(row, col, size, orientation, excludeShipId = null) {
     for (let i = 0; i < size; i++) {
-      const shipRow = orientation === 'horizontal' ? row : row + i;
-      const shipCol = orientation === 'horizontal' ? col + i : col;
+      const shipRow = orientation === "horizontal" ? row : row + i;
+      const shipCol = orientation === "horizontal" ? col + i : col;
 
       // Verificar las 8 casillas alrededor
       for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
@@ -57,7 +57,7 @@ class Board {
   // Verificar si un barco puede ser colocado
   canPlaceShip(row, col, size, orientation, excludeShipId = null) {
     // Verificar límites
-    if (orientation === 'horizontal') {
+    if (orientation === "horizontal") {
       if (col + size > this.size) return false;
     } else {
       if (row + size > this.size) return false;
@@ -65,8 +65,8 @@ class Board {
 
     // Verificar superposición
     for (let i = 0; i < size; i++) {
-      const shipRow = orientation === 'horizontal' ? row : row + i;
-      const shipCol = orientation === 'horizontal' ? col + i : col;
+      const shipRow = orientation === "horizontal" ? row : row + i;
+      const shipCol = orientation === "horizontal" ? col + i : col;
 
       if (this.isPositionOccupied(shipRow, shipCol, excludeShipId)) {
         return false;
@@ -74,12 +74,18 @@ class Board {
     }
 
     // Verificar separación mínima
-    return this.hasMinimumSeparation(row, col, size, orientation, excludeShipId);
+    return this.hasMinimumSeparation(
+      row,
+      col,
+      size,
+      orientation,
+      excludeShipId
+    );
   }
 
   // Colocar un barco
   placeShip(shipId, row, col, orientation) {
-    const ship = this.ships.find(s => s.id === shipId);
+    const ship = this.ships.find((s) => s.id === shipId);
     if (!ship) return false;
 
     if (this.canPlaceShip(row, col, ship.size, orientation, shipId)) {
@@ -92,7 +98,7 @@ class Board {
   // Colocar barcos aleatoriamente
   placeShipsRandomly() {
     // Resetear barcos
-    this.ships.forEach(ship => {
+    this.ships.forEach((ship) => {
       ship.placed = false;
       ship.row = null;
       ship.col = null;
@@ -100,14 +106,16 @@ class Board {
     });
 
     // Colocar cada barco
-    this.ships.forEach(ship => {
+    this.ships.forEach((ship) => {
       let placed = false;
       let attempts = 0;
 
       while (!placed && attempts < 100) {
-        const orientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-        const maxRow = orientation === 'horizontal' ? this.size : this.size - ship.size;
-        const maxCol = orientation === 'horizontal' ? this.size - ship.size : this.size;
+        const orientation = Math.random() < 0.5 ? "horizontal" : "vertical";
+        const maxRow =
+          orientation === "horizontal" ? this.size : this.size - ship.size;
+        const maxCol =
+          orientation === "horizontal" ? this.size - ship.size : this.size;
 
         const row = Math.floor(Math.random() * maxRow);
         const col = Math.floor(Math.random() * maxCol);
@@ -124,7 +132,9 @@ class Board {
   // Recibir un disparo
   receiveShot(row, col) {
     // Verificar si ya se disparó a esta posición
-    const existingShot = this.shots.find(shot => shot.row === row && shot.col === col);
+    const existingShot = this.shots.find(
+      (shot) => shot.row === row && shot.col === col
+    );
     if (existingShot) {
       return { isHit: existingShot.isHit, alreadyShot: true };
     }
@@ -146,25 +156,78 @@ class Board {
     // Registrar el disparo
     this.shots.push({ row, col, isHit });
 
+    // Si se hundio un barco, marcar casillas adyacentes como agua
+    if (sunkShip) {
+      this.markAdjacentCellsAsWater(sunkShip);
+    }
+
     return { isHit, sunkShip, alreadyShot: false };
+  }
+
+  // Marcar casillas adyacentes como agua cuando se hunde un barco
+  markAdjacentCellsAsWater(ship) {
+    console.log("🎯 Marcando casillas adyacentes para barco hundido:", ship.id);
+    const shipPositions = ship.getPositions();
+    console.log("📍 Posiciones del barco:", shipPositions);
+
+    // Para cada posicion del barco encontrar casillas adyacentes
+    shipPositions.forEach((pos) => {
+      // Las 8 direcciones alrededor de cada casilla
+      for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+        for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+          const adjacentRow = pos.row + deltaRow;
+          const adjacentCol = pos.col + deltaCol;
+
+          // Verificar que este dentro del tablero
+          if (
+            adjacentRow >= 0 &&
+            adjacentRow < this.size &&
+            adjacentCol >= 0 &&
+            adjacentCol < this.size
+          ) {
+            // Verificar que no sea una posicion del barco mismo
+            const isShipPosition = shipPositions.some(
+              (shipPos) =>
+                shipPos.row === adjacentRow && shipPos.col === adjacentCol
+            );
+
+            // Si no es del barco y no ha sido disparada, marcarla como agua
+            if (!isShipPosition) {
+              const existingShot = this.shots.find(
+                (shot) => shot.row === adjacentRow && shot.col === adjacentCol
+              );
+
+              if (!existingShot) {
+                this.shots.push({
+                  row: adjacentRow,
+                  col: adjacentCol,
+                  isHit: false,
+                });
+                console.log(`💧 Marcada casilla adyacente como agua: [${adjacentRow}, ${adjacentCol}]`);
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   // Verificar si todos los barcos están hundidos
   areAllShipsSunk() {
-    return this.ships.every(ship => ship.isSunk());
+    return this.ships.every((ship) => ship.isSunk());
   }
 
   // Obtener barco en posición
   getShipAt(row, col) {
-    return this.ships.find(ship => ship.occupiesPosition(row, col));
+    return this.ships.find((ship) => ship.occupiesPosition(row, col));
   }
 
   // Convertir a JSON
   toJSON() {
     return {
       size: this.size,
-      ships: this.ships.map(ship => ship.toJSON()),
-      shots: this.shots
+      ships: this.ships.map((ship) => ship.toJSON()),
+      shots: this.shots,
     };
   }
 
@@ -172,7 +235,9 @@ class Board {
   static fromJSON(data) {
     const board = new Board();
     board.size = data.size || 10;
-    board.ships = data.ships ? data.ships.map(shipData => Ship.fromJSON(shipData)) : [];
+    board.ships = data.ships
+      ? data.ships.map((shipData) => Ship.fromJSON(shipData))
+      : [];
     board.shots = data.shots || [];
     return board;
   }
