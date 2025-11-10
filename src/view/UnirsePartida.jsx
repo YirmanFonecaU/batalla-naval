@@ -60,7 +60,7 @@ export default function UnirsePartida() {
     };
 
     return (
-        <div className="home-page">
+        <div className="black-page">
             <div className="container">
                 <div className="top-buttons">
                     <button className="icon-btn" onClick={handleBack}>↩</button>

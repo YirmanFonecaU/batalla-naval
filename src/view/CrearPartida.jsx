@@ -72,7 +72,7 @@ export default function CrearPartida() {
     };
 
     return (
-        <div className="home-page">
+        <div className="black-page">
             <div className="container">
                 <div className="top-buttons">
                     <button className="icon-btn" onClick={handleBack}>↩</button>
@@ -107,8 +107,6 @@ export default function CrearPartida() {
                                 color: 'red', 
                                 marginTop: '10px',
                                 padding: '10px',
-                                backgroundColor: '#ffe6e6',
-                                borderRadius: '5px',
                                 textAlign: 'center'
                             }}>
                                 {error}

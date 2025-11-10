@@ -47,14 +47,25 @@ class Game {
       }
     }
 
+    // IMPORTANTE: Reconfigurar referencias cruzadas después de reinicializar tableros
+    this.player1.setTargetBoard(this.player2.board);
+    this.player2.setTargetBoard(this.player1.board);
+    console.log(`🔗 Referencias reconfiguradas para jugador ${playerId}`);
+
     // Si es contra IA y se configuró el jugador 1, configurar IA automáticamente
     if (this.isVsAI && playerId === 1) {
       this.player2.board.placeShipsRandomly();
+      // Volver a configurar referencias después de colocar barcos de IA
+      this.player1.setTargetBoard(this.player2.board);
+      this.player2.setTargetBoard(this.player1.board);
       this.status = 'playing';
     }
 
     // Si es multijugador y ambos jugadores configuraron sus barcos
     if (!this.isVsAI && this.areAllShipsPlaced()) {
+      // Reconfigurar referencias para multijugador también
+      this.player1.setTargetBoard(this.player2.board);
+      this.player2.setTargetBoard(this.player1.board);
       this.status = 'playing';
     }
 
@@ -113,10 +124,13 @@ class Game {
     this.updatedAt = new Date();
 
     // Si es turno de la IA, hacer disparo automático
+    console.log(`🤖 Verificando IA: isVsAI=${this.isVsAI}, currentTurn=${this.currentTurn}, status=${this.status}`);
     if (this.isVsAI && this.currentTurn === 2 && this.status === 'playing') {
+      console.log('🤖 IA va a disparar en 1 segundo...');
       setTimeout(() => {
         try {
           const aiResult = this.makeAIShot();
+          console.log('🤖 IA disparó:', aiResult);
 
           // Si existe un callback registrado (desde el frontend)
           if (typeof this.onAIShotComplete === "function") {
@@ -158,9 +172,28 @@ class Game {
       this.winner = 2;
     }
 
-    // Cambiar turno solo si no hundió un barco
-    if (!result.isHit || result.sunkShip) {
+    // Cambiar turno solo si no acertó (falló)
+    if (!result.isHit) {
       this.switchTurn();
+      console.log('🔄 IA falló, turno cambiado a jugador 1');
+    } else {
+      console.log('🎯 IA acertó, continúa su turno');
+      // Si acertó y el juego sigue, hacer otro disparo automático
+      if (this.status === 'playing') {
+        setTimeout(() => {
+          try {
+            const nextAIResult = this.makeAIShot();
+            console.log('🤖 IA dispara de nuevo (continuación):', nextAIResult);
+
+            // Si existe un callback registrado (desde el frontend)
+            if (typeof this.onAIShotComplete === "function") {
+              this.onAIShotComplete(nextAIResult, this.getGameState(1));
+            }
+          } catch (error) {
+            console.error("AI continuation shot error:", error);
+          }
+        }, 1000);
+      }
     }
 
     this.updatedAt = new Date();
@@ -172,10 +205,15 @@ class Game {
     this.currentTurn = this.currentTurn === 1 ? 2 : 1;
   }
 
-  // Obtener estado del juego para un jugador específico
+  // Obtener estado del juego para un jugador específico  
   getGameState(playerId) {
     const player = playerId === 1 ? this.player1 : this.player2;
     const opponent = playerId === 1 ? this.player2 : this.player1;
+
+    console.log(`🎮 getGameState para jugador ${playerId}:`);
+    console.log(`📊 Disparos recibidos en mi tablero: ${player.board.shots.length}`);
+    console.log(`📊 Disparos que yo he hecho: ${player.lastShots.length}`);
+    console.log(`📊 Disparos recibidos por oponente: ${opponent.board.shots.length}`);
 
     return {
       gameId: this.id,
@@ -197,7 +235,29 @@ class Game {
         // Solo mostrar barcos hundidos
         sunkShips: opponent.board.ships
           .filter(ship => ship.isSunk())
-          .map(ship => ship.toJSON())
+          .map(ship => ship.toJSON()),
+        // Todos los barcos con su estado de daño (para mostrar en la interfaz)
+        allShips: opponent.board.ships.map(ship => {
+          const shipData = ship.toJSON();
+          // Agregar información de qué segmentos han sido dañados
+          const segments = [];
+          for (let i = 0; i < ship.size; i++) {
+            const segRow = ship.orientation === 'horizontal' ? ship.row : ship.row + i;
+            const segCol = ship.orientation === 'horizontal' ? ship.col + i : ship.col;
+            
+            // Verificar si este segmento fue golpeado
+            const isHit = opponent.board.shots.some(
+              shot => shot.row === segRow && shot.col === segCol && shot.isHit
+            );
+            segments.push({ isHit });
+          }
+          
+          return {
+            ...shipData,
+            segments: segments,
+            isFullyRevealed: ship.isSunk() // Solo mostrar barco completo si está hundido
+          };
+        })
       },
 
       // Estadísticas

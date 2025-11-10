@@ -229,7 +229,7 @@ export default function Tablero() {
               </div>
             ))}
             {ships.filter(ship => !ship.placed).length === 0 && (
-              <p className="all-placed">✅ Todos los barcos colocados</p>
+              <p className="all-placed">Todos los barcos colocados</p>
             )}
           </div>
         </div>
@@ -305,8 +305,8 @@ export default function Tablero() {
           </div>
 
           <div className="board-buttons">
-            <button className="action-btn" onClick={placeShipsRandomly}>🎲 Random</button>
-            <button className="action-btn" onClick={startGame}>▶️ Play</button>
+            <button className="action-btn" onClick={placeShipsRandomly}>Random</button>
+            <button className="action-btn" onClick={startGame}>Play</button>
           </div>
         </div>
       </div>
