@@ -1,5 +1,5 @@
 /**
- * 🎯 PROPÓSITO: Manejar conexiones WebSocket para multijugador
+ *  PROPÓSITO: Manejar conexiones WebSocket para multijugador
  */
 
 class SocketHandler {
@@ -11,7 +11,7 @@ class SocketHandler {
     this.playerGames = new Map(); // gameId -> {player1Socket, player2Socket}
     this.startTime = Date.now();
 
-    console.log('🔌 SocketHandler inicializado para multijugador');
+    console.log(' SocketHandler inicializado para multijugador');
   }
 
   /**
@@ -31,34 +31,34 @@ class SocketHandler {
 
     // Enviar mensaje de bienvenida
     socket.emit('connected', {
-      message: '🎮 Conectado al servidor Batalla Naval',
+      message: ' Conectado al servidor Batalla Naval',
       socketId: socket.id,
       timestamp: new Date().toISOString()
     });
 
-    // 🎮 EVENTOS DEL JUEGO MULTIJUGADOR
+    //  EVENTOS DEL JUEGO MULTIJUGADOR
 
-    // 📝 Crear partida
+    //  Crear partida
     socket.on('create-game', (data) => {
       this.handleCreateGame(socket, data);
-    });
+    }); 
 
-    // 📝 Unirse a partida
+    //  Unirse a partida
     socket.on('join-game', (data) => {
       this.handleJoinGame(socket, data);
     });
 
-    // 📝 Colocar barcos
+    //  Colocar barcos
     socket.on('place-ships', (data) => {
       this.handlePlaceShips(socket, data);
     });
 
-    // 📝 Realizar disparo
+    //  Realizar disparo
     socket.on('make-shot', (data) => {
       this.handleMakeShot(socket, data);
     });
 
-    // 📊 EVENTO: Solicitar estadísticas
+    //  EVENTO: Solicitar estadísticas
     socket.on('get-stats', () => {
       socket.emit('stats', {
         connectedClients: this.connectedClients.size,
@@ -67,19 +67,19 @@ class SocketHandler {
       });
     });
 
-    // 📝 EVENTO: Cliente se desconecta
+    //  EVENTO: Cliente se desconecta
     socket.on('disconnect', () => {
       this.handleDisconnect(socket);
     });
 
-    // 🏓 EVENTO: Ping/Pong
+    //  EVENTO: Ping/Pong
     socket.on('ping', () => {
       socket.emit('pong', { timestamp: new Date().toISOString() });
     });
   }
 
   /**
-   * 🎯 CREAR PARTIDA
+   *  CREAR PARTIDA
    */
   async handleCreateGame(socket, data) {
     try {
@@ -117,7 +117,7 @@ class SocketHandler {
               // Unir socket a la sala del juego
               socket.join(gameId);
 
-              console.log(`🎮 Partida creada: ${gameCode} -> ${gameId} por ${playerName}`);
+              console.log(` Partida creada: ${gameCode} -> ${gameId} por ${playerName}`);
 
               socket.emit('game-created', {
                 success: true,
@@ -141,7 +141,7 @@ class SocketHandler {
   }
 
   /**
-   * 🎯 UNIRSE A PARTIDA
+   *  UNIRSE A PARTIDA
    */
   async handleJoinGame(socket, data) {
     try {
@@ -204,7 +204,7 @@ class SocketHandler {
                 }
               });
 
-              console.log(`🎮 ${playerName} se unió a la partida ${gameCode}`);
+              console.log(` ${playerName} se unió a la partida ${gameCode}`);
             } else {
               socket.emit('error', { message: responseData.error });
             }
@@ -221,7 +221,7 @@ class SocketHandler {
   }
 
   /**
-   * 🎯 COLOCAR BARCOS
+   *  COLOCAR BARCOS
    */
   async handlePlaceShips(socket, data) {
     try {
@@ -262,7 +262,7 @@ class SocketHandler {
                   currentTurn: game.currentTurn
                 });
 
-                console.log(`🎮 Partida ${gameId} lista para comenzar`);
+                console.log(` Partida ${gameId} lista para comenzar`);
               }
             } else {
               socket.emit('error', { message: responseData.error });
@@ -280,7 +280,7 @@ class SocketHandler {
   }
 
   /**
-   * 🎯 REALIZAR DISPARO
+   *  REALIZAR DISPARO
    */
   async handleMakeShot(socket, data) {
     try {
@@ -362,10 +362,10 @@ class SocketHandler {
   }
 
   /**
-   * 🚫 MANEJAR DESCONEXIÓN
+   *  MANEJAR DESCONEXIÓN
    */
   handleDisconnect(socket) {
-    console.log(`❌ Cliente desconectado: ${socket.id}`);
+    console.log(` Cliente desconectado: ${socket.id}`);
 
     const clientData = this.connectedClients.get(socket.id);
     if (clientData && clientData.gameId) {
@@ -390,7 +390,7 @@ class SocketHandler {
   }
 
   /**
-   * 🧹 LIMPIAR PARTIDA
+   *  LIMPIAR PARTIDA
    */
   cleanupGame(gameId) {
     // Encontrar y eliminar el código de la partida
@@ -405,7 +405,7 @@ class SocketHandler {
   }
 
   /**
-   * 🔤 GENERAR CÓDIGO DE PARTIDA
+   *  GENERAR CÓDIGO DE PARTIDA
    */
   generateGameCode() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -419,10 +419,10 @@ class SocketHandler {
   }
 
   /**
-   * 📊 OBTENER ESTADÍSTICAS DEL SERVIDOR
+   *  OBTENER ESTADÍSTICAS DEL SERVIDOR
    */
   /**
- * 📊 OBTENER ESTADÍSTICAS DEL SERVIDOR
+ *  OBTENER ESTADÍSTICAS DEL SERVIDOR
  */
   getServerStats() {
     return {

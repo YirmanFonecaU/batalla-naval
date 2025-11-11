@@ -50,7 +50,7 @@ class Game {
     // IMPORTANTE: Reconfigurar referencias cruzadas después de reinicializar tableros
     this.player1.setTargetBoard(this.player2.board);
     this.player2.setTargetBoard(this.player1.board);
-    console.log(`🔗 Referencias reconfiguradas para jugador ${playerId}`);
+    console.log(` Referencias reconfiguradas para jugador ${playerId}`);
 
     // Si es contra IA y se configuró el jugador 1, configurar IA automáticamente
     if (this.isVsAI && playerId === 1) {
@@ -124,13 +124,13 @@ class Game {
     this.updatedAt = new Date();
 
     // Si es turno de la IA, hacer disparo automático
-    console.log(`🤖 Verificando IA: isVsAI=${this.isVsAI}, currentTurn=${this.currentTurn}, status=${this.status}`);
+    console.log(` Verificando IA: isVsAI=${this.isVsAI}, currentTurn=${this.currentTurn}, status=${this.status}`);
     if (this.isVsAI && this.currentTurn === 2 && this.status === 'playing') {
-      console.log('🤖 IA va a disparar en 1 segundo...');
+      console.log(' IA va a disparar en 1 segundo...');
       setTimeout(() => {
         try {
           const aiResult = this.makeAIShot();
-          console.log('🤖 IA disparó:', aiResult);
+          console.log(' IA disparó:', aiResult);
 
           // Si existe un callback registrado (desde el frontend)
           if (typeof this.onAIShotComplete === "function") {
@@ -141,7 +141,7 @@ class Game {
         } catch (error) {
           console.error("AI shot error:", error);
         }
-      }, 1000);
+      }, 3000);
     }
 
 
@@ -175,15 +175,15 @@ class Game {
     // Cambiar turno solo si no acertó (falló)
     if (!result.isHit) {
       this.switchTurn();
-      console.log('🔄 IA falló, turno cambiado a jugador 1');
+      console.log(' IA falló, turno cambiado a jugador 1');
     } else {
-      console.log('🎯 IA acertó, continúa su turno');
+      console.log(' IA acertó, continúa su turno');
       // Si acertó y el juego sigue, hacer otro disparo automático
       if (this.status === 'playing') {
         setTimeout(() => {
           try {
             const nextAIResult = this.makeAIShot();
-            console.log('🤖 IA dispara de nuevo (continuación):', nextAIResult);
+            console.log(' IA dispara de nuevo (continuación):', nextAIResult);
 
             // Si existe un callback registrado (desde el frontend)
             if (typeof this.onAIShotComplete === "function") {
@@ -192,7 +192,7 @@ class Game {
           } catch (error) {
             console.error("AI continuation shot error:", error);
           }
-        }, 1000);
+        }, 3000);
       }
     }
 
@@ -210,10 +210,10 @@ class Game {
     const player = playerId === 1 ? this.player1 : this.player2;
     const opponent = playerId === 1 ? this.player2 : this.player1;
 
-    console.log(`🎮 getGameState para jugador ${playerId}:`);
-    console.log(`📊 Disparos recibidos en mi tablero: ${player.board.shots.length}`);
-    console.log(`📊 Disparos que yo he hecho: ${player.lastShots.length}`);
-    console.log(`📊 Disparos recibidos por oponente: ${opponent.board.shots.length}`);
+    console.log(` getGameState para jugador ${playerId}:`);
+    console.log(` Disparos recibidos en mi tablero: ${player.board.shots.length}`);
+    console.log(` Disparos que yo he hecho: ${player.lastShots.length}`);
+    console.log(` Disparos recibidos por oponente: ${opponent.board.shots.length}`);
 
     return {
       gameId: this.id,
