@@ -90,7 +90,7 @@ const server = createServer(app);
 // Configurar Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Tu frontend Vite
+    origin: "*", // Tu frontend Vite
     methods: ["GET", "POST"],
     credentials: true
   }
