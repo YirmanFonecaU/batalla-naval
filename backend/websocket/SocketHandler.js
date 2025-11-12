@@ -34,10 +34,14 @@ class SocketHandler {
     socket.on('create-game', (data) => this.handleCreateGame(socket, data));
     socket.on('join-game', (data) => this.handleJoinGame(socket, data));
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     socket.on('place-ships', (data) =>{ 
         console.log('🚢 EVENTO place-ships RECIBIDO:', data);  // ✅ AGREGAR
 
       this.handlePlaceShips(socket, data)});
+=======
+    socket.on('place-ships', (data) => this.handlePlaceShips(socket, data));
+>>>>>>> Stashed changes
 =======
     socket.on('place-ships', (data) => this.handlePlaceShips(socket, data));
 >>>>>>> Stashed changes
@@ -428,6 +432,7 @@ async handlePlaceShips(socket, data) {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   } catch (error) {
     console.error('❌❌❌ ERROR EN handlePlaceShips:', error);
     console.error('📋 Stack:', error.stack);
@@ -526,6 +531,8 @@ async handleMakeShot(socket, data) {
 
         this.io.to(gameSockets.player1Socket).emit('shot-result', {
 =======
+=======
+>>>>>>> Stashed changes
       const mockReq = {
         params: { gameId },
         body: {
@@ -631,6 +638,7 @@ async handleMakeShot(socket, data) {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // Verificar si el juego terminó
     if (game.status === 'finished') {
       console.log('🏁 ¡Juego terminado! Ganador:', game.winner);
@@ -653,6 +661,8 @@ async handleMakeShot(socket, data) {
   }
 }
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   handleDisconnect(socket) {

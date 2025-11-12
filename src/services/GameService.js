@@ -18,6 +18,7 @@ class GameService {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // Desconectar cualquier socket anterior
     if (this.socket) {
       this.socket.disconnect();
@@ -36,6 +37,8 @@ class GameService {
     });
 
 =======
+=======
+>>>>>>> Stashed changes
     this.socket = io('https://magnetically-predenial-memphis.ngrok-free.dev', {
       transports: ["websocket"],
       reconnection: true,              // ✅ Habilitar reconexión automática
@@ -43,6 +46,9 @@ class GameService {
       reconnectionDelayMax: 5000,      // ✅ Máximo 5 segundos
       reconnectionAttempts: 5          // ✅ Intentar 5 veces
     });
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     this.setupEventListeners();
     this.setupReconnectionHandlers();
@@ -99,6 +105,7 @@ class GameService {
       }));
     });
   }
+<<<<<<< Updated upstream
 
   // ✅ Manejar reconexiones
   setupReconnectionHandlers() {
@@ -138,6 +145,8 @@ class GameService {
       }));
     });
   }
+=======
+>>>>>>> Stashed changes
 
   // Configurar listeners de eventos
   setupEventListeners() {

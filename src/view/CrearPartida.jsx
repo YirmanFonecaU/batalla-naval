@@ -12,6 +12,7 @@ export default function CrearPartida() {
     const [isConnecting, setIsConnecting] = useState(true);
     const [waitingForPlayer, setWaitingForPlayer] = useState(false);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const [opponentName, setOpponentName] = useState(''); // ✅ AGREGAR ESTA LÍNEA
 
     useEffect(() => {
@@ -81,6 +82,42 @@ export default function CrearPartida() {
         // Busca donde manejas el evento 'gameCreated' y actualiza así:
 
 >>>>>>> Stashed changes
+=======
+
+    useEffect(() => {
+        let mounted = true;
+
+        console.log('🔌 Verificando conexión al servidor...');
+
+        const connectToServer = async () => {
+            if (gameService.isConnected) {
+                console.log('✅ Ya conectado al servidor');
+                setIsConnecting(false);
+                return;
+            }
+
+            try {
+                await gameService.connect();
+                if (mounted) {
+                    console.log('✅ Conectado al servidor');
+                    setIsConnecting(false);
+                    setError('');
+                }
+            } catch (error) {
+                if (mounted) {
+                    console.error('❌ Error de conexión:', error);
+                    setError('No se pudo conectar al servidor. Verifica que el servidor esté corriendo.');
+                    setIsConnecting(false);
+                }
+            }
+        };
+
+        connectToServer();
+
+        // 🔥 SECCIÓN A ACTUALIZAR EN CrearPartida.jsx
+        // Busca donde manejas el evento 'gameCreated' y actualiza así:
+
+>>>>>>> Stashed changes
         const handleGameCreated = (event) => {
             console.log('🎮 EVENTO gameCreated recibido:', event.detail);
 
@@ -88,8 +125,12 @@ export default function CrearPartida() {
 
             setGameCode(gameCode);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             setWaitingForPlayer(true); // ✅ CORREGIDO: era setIsWaiting
             setIsCreating(false);
+=======
+            setIsWaiting(true);
+>>>>>>> Stashed changes
 =======
             setIsWaiting(true);
 >>>>>>> Stashed changes
@@ -108,7 +149,11 @@ export default function CrearPartida() {
             console.log('👥 EVENTO playerJoined recibido:', event.detail);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             setOpponentName(event.detail.opponent?.name || 'Oponente'); // ✅ AHORA SÍ EXISTE
+=======
+            setOpponentName(event.detail.opponent?.name || 'Oponente');
+>>>>>>> Stashed changes
 =======
             setOpponentName(event.detail.opponent?.name || 'Oponente');
 >>>>>>> Stashed changes
@@ -119,7 +164,11 @@ export default function CrearPartida() {
             navigate('/tablero', {
                 state: {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     gameId: gameService.gameId,
+=======
+                    gameId: gameService.gameId,        // ✅ Usar el gameId de gameService
+>>>>>>> Stashed changes
 =======
                     gameId: gameService.gameId,        // ✅ Usar el gameId de gameService
 >>>>>>> Stashed changes
@@ -151,7 +200,11 @@ export default function CrearPartida() {
             window.removeEventListener('gameError', handleError);
         };
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     }, [navigate]); // ✅ Agregar navigate como dependencia
+=======
+    }, []); // ✅ ARRAY VACÍO
+>>>>>>> Stashed changes
 =======
     }, []); // ✅ ARRAY VACÍO
 >>>>>>> Stashed changes
@@ -184,10 +237,13 @@ export default function CrearPartida() {
 
     const handleBack = () => {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         // ✅ Limpiar estado si cancela
         if (waitingForPlayer && gameService.gameId) {
             gameService.disconnect();
         }
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         navigate("/multiplayer");
