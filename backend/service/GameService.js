@@ -1,4 +1,3 @@
-// GameService.js
 class GameService {
   constructor() {
     this.socket = null;
@@ -15,7 +14,7 @@ class GameService {
       this.socket.close();
     }
 
-    this.socket = new WebSocket("ws://localhost:3001"); // <-- Cambia el puerto/URL si es necesario
+    this.socket = new WebSocket("ws://localhost:3001"); // 
 
     this.setupEventListeners();
 
@@ -28,13 +27,12 @@ class GameService {
 
       this.socket.onerror = (error) => {
         this.isConnected = false;
-        console.error("❌ Error conectando al servidor:", error);
+        console.error("Error conectando al servidor:", error);
         reject(error);
       };
     });
   }
 
-  // Configurar listeners de eventos
   setupEventListeners() {
     this.socket.onmessage = (messageEvent) => {
       try {
@@ -91,10 +89,9 @@ class GameService {
     };
   }
 
-  // Enviar mensajes al servidor
   send(event, payload = {}) {
     if (!this.isConnected) {
-      console.warn("⚠️ No conectado al servidor WebSocket");
+      console.warn("No conectado al servidor WebSocket");
       return;
     }
 
@@ -102,7 +99,7 @@ class GameService {
     this.socket.send(message);
   }
 
-  // Crear partida
+  
   createGame(playerName) {
     this.playerName = playerName;
     this.send("create-game", { playerName });

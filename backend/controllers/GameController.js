@@ -7,11 +7,9 @@ import Player from '../models/Player.js';
 
 class GameController {
   constructor() {
-    // En memoria para desarrollo. En producción usar base de datos
     this.games = new Map();
   }
 
-  // Crear nueva partida
   createGame(req, res) {
     try {
       const { playerName, gameMode } = req.body; // gameMode: 'ai' o 'multiplayer'
@@ -59,7 +57,7 @@ class GameController {
       // Buscar la partida
       const game = this.games.get(gameId);
       if (!game) {
-        console.log('❌ Partida no encontrada:', gameId);
+        console.log('Partida no encontrada:', gameId);
         return res.status(404).json({
           error: 'Game not found'
         });
@@ -67,13 +65,12 @@ class GameController {
 
       // Evitar unirse a partidas contra IA
       if (game.isVsAI) {
-        console.log('❌ Intento de unirse a partida contra IA');
+        console.log('Intento de unirse a partida contra IA');
         return res.status(400).json({
           error: 'Cannot join AI game'
         });
       }
 
-      // ✅ VALIDACIÓN CORREGIDA: Verificar si player2 YA TIENE un nombre válido
       const player2HasName = game.player2 &&
         game.player2.name !== null &&
         game.player2.name !== undefined &&
@@ -81,14 +78,13 @@ class GameController {
         game.player2.name.trim() !== '';
 
       if (player2HasName) {
-        console.log('❌ La partida ya está llena. Player2:', game.player2.name);
+        console.log('La partida ya está llena. Player2:', game.player2.name);
         return res.status(400).json({
           error: 'Game is full'
         });
       }
 
-      // ✅ Verificar que el jugador 1 no intente unirse de nuevo
-      // PERO permitir reconexión si la sesión se perdió
+   
       if (
         game.player1 &&
         game.player1.name &&
@@ -105,29 +101,27 @@ class GameController {
         });
       }
 
-      // ✅ CORRECCIÓN CRÍTICA: Asignar nombre al player2 existente
       if (game.player2) {
         game.player2.name = playerName.trim();
         console.log('✅ Nombre asignado a player2 existente:', playerName);
       } else {
-        // Por si acaso player2 no existe (no debería pasar)
         console.warn('⚠️ player2 no existía, creándolo...');
         game.player2 = new Player(2, playerName.trim(), false);
       }
 
-      // ✅ Configurar tableros
+      // Configuracionn de tableros
       if (game.player1 && game.player2) {
         game.player1.setTargetBoard(game.player2.board);
         game.player2.setTargetBoard(game.player1.board);
-        console.log('✅ Tableros configurados para ambos jugadores');
+        console.log('Tableros configurados para ambos jugadores');
       }
 
-      console.log('✅ Player2 unido exitosamente:', {
+      console.log('Player2 unido exitosamente:', {
         player1: game.player1.name,
         player2: game.player2.name
       });
 
-      // ✅ Confirmar unión exitosa
+      // Confirmar unino exitosa
       return res.status(200).json({
         success: true,
         message: 'Player joined successfully',
@@ -137,7 +131,7 @@ class GameController {
       });
 
     } catch (error) {
-      console.error('❌ Error in joinGame:', error);
+      console.error('Error in joinGame:', error);
       return res.status(500).json({
         error: 'Internal server error',
         details: error.message
@@ -146,63 +140,61 @@ class GameController {
   }
 
 
-  // Configurar barcos del jugador
-  // 🔥 REEMPLAZAR EL MÉTODO setShips EN GameController.js
+ 
 
   setShips(req, res) {
     try {
-      console.log('🚢 setShips llamado'); // ✅ LOG 1
+      console.log('etShips llamado'); 
 
       const { gameId } = req.params;
       const { playerId, ships } = req.body;
 
-      console.log('🔍 Datos recibidos:', { gameId, playerId, shipsCount: ships?.length }); // ✅ LOG 2
+      console.log('Datos recibidos:', { gameId, playerId, shipsCount: ships?.length }); 
 
       const game = this.games.get(gameId);
       if (!game) {
-        console.log('❌ Game no encontrado:', gameId); // ✅ LOG 3
+        console.log('Game no encontrado:', gameId); 
         return res.status(404).json({
           error: 'Game not found'
         });
       }
 
-      console.log('✅ Game encontrado'); // ✅ LOG 4
+      console.log('✅ Game encontrado'); 
 
       if (!Array.isArray(ships) || ships.length !== 5) {
-        console.log('❌ Cantidad de barcos inválida:', ships?.length); // ✅ LOG 5
+        console.log('Cantidad de barcos inválida:', ships?.length); 
         return res.status(400).json({
           error: 'Must provide exactly 5 ships'
         });
       }
 
-      console.log('✅ Cantidad de barcos correcta'); // ✅ LOG 6
+      console.log('✅ Cantidad de barcos correcta'); 
 
-      // Validar formato de barcos
       const expectedSizes = [5, 4, 3, 2, 2];
       const providedSizes = ships.map(s => s.size).sort((a, b) => b - a);
 
-      console.log('🔍 Tamaños esperados:', expectedSizes); // ✅ LOG 7
-      console.log('🔍 Tamaños recibidos:', providedSizes); // ✅ LOG 8
+      console.log('Tamaños esperados:', expectedSizes); 
+      console.log('Tamaños recibidos:', providedSizes); 
 
       if (JSON.stringify(expectedSizes) !== JSON.stringify(providedSizes)) {
-        console.log('❌ Tamaños de barcos inválidos'); // ✅ LOG 9
+        console.log('Tamaños de barcos inválidos'); 
         return res.status(400).json({
           error: 'Invalid ship sizes'
         });
       }
 
-      console.log('✅ Tamaños de barcos correctos'); // ✅ LOG 10
-      console.log('🚀 Llamando a game.setPlayerShips...'); // ✅ LOG 11
+      console.log('Tamaños de barcos correctos'); 
+      console.log('Llamando a game.setPlayerShips...'); 
 
       game.setPlayerShips(playerId, ships);
 
-      console.log('✅ Barcos configurados exitosamente para jugador', playerId); // ✅ LOG 12
-      console.log('🔍 Estado del juego:', game.status); // ✅ LOG 13
-      console.log('🔍 Player1 ships placed:', game.player1.board.ships.every(s => s.placed)); // ✅ LOG 14
-      console.log('🔍 Player2 ships placed:', game.player2.board.ships.every(s => s.placed)); // ✅ LOG 15
+      console.log('Barcos configurados exitosamente para jugador', playerId); 
+      console.log('Estado del juego:', game.status); 
+      console.log('Player1 ships placed:', game.player1.board.ships.every(s => s.placed)); 
+      console.log('Player2 ships placed:', game.player2.board.ships.every(s => s.placed)); 
 
       const gameState = game.getGameState(playerId);
-      console.log('✅ GameState generado'); // ✅ LOG 16
+      console.log('GameState generado'); 
 
       res.json({
         success: true,
@@ -210,11 +202,11 @@ class GameController {
         gameState: gameState
       });
 
-      console.log('✅ Respuesta enviada correctamente'); // ✅ LOG 17
+      console.log('Respuesta enviada correctamente'); 
 
     } catch (error) {
-      console.error('❌❌❌ ERROR EN setShips:', error); // ✅ LOG ERROR
-      console.error('📋 Stack:', error.stack); // ✅ STACK TRACE
+      console.error('ERROR EN setShips:', error); 
+      console.error('📋 Stack:', error.stack); 
       res.status(400).json({
         error: 'Failed to set ships',
         details: error.message
@@ -225,14 +217,14 @@ class GameController {
   // Realizar disparo
   makeShot(req, res) {
     try {
-      console.log('🎯 makeShot llamado'); // ✅ AGREGAR
+      console.log('makeShot llamado'); 
       const { gameId } = req.params;
       const { playerId, row, col } = req.body;
-      console.log('🔍 Disparo:', { gameId, playerId, row, col }); // ✅ AGREGAR
+      console.log('🔍 Disparo:', { gameId, playerId, row, col }); 
 
       const game = this.games.get(gameId);
       if (!game) {
-        console.log('❌ Game no encontrado'); // ✅ AGREGAR
+        console.log('Game no encontrado'); 
         return res.status(404).json({
           error: 'Game not found'
         });
@@ -247,14 +239,14 @@ class GameController {
 
       const result = game.makeShot(playerId, row, col);
 
-      // 🔥 LOG TEMPORAL: Verificar que llega aquí
-      console.log(`🎯 DISPARO RECIBIDO: ${playerId} -> [${row}, ${col}] en ${gameId}`);
+      //Aqui pongto un LOG TEMPORAL: Verificar que llega aquí
+      console.log(`DISPARO RECIBIDO: ${playerId} -> [${row}, ${col}] en ${gameId}`);
 
       // Auto-guardar en segundo plano (no bloquea la respuesta)
-      console.log(`💾 INICIANDO auto-guardado para ${gameId}...`);
+      console.log(`INICIANDO auto-guardado para ${gameId}...`);
       GamePersistenceManager.autoSaveGame(gameId, game.getGameState(playerId))
-        .then(() => console.log(`✅ AUTO-GUARDADO EXITOSO: ${gameId}`))
-        .catch(error => console.error(`❌ ERROR auto-guardando ${gameId}:`, error));
+        .then(() => console.log(`AUTO-GUARDADO EXITOSO: ${gameId}`))
+        .catch(error => console.error(`ERROR auto-guardando ${gameId}:`, error));
 
       res.json({
         success: true,
