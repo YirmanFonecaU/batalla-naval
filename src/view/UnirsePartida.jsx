@@ -14,6 +14,10 @@ export default function UnirsePartida() {
     useEffect(() => {
         let mounted = true;
 
+        // ✅ Limpiar estado anterior al cargar la página
+        console.log('🧹 Limpiando estado anterior...');
+        gameService.clearGameState();
+        
         console.log('🔌 Verificando conexión al servidor...');
         
         // Conectar solo si no está conectado

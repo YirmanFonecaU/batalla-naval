@@ -1,6 +1,7 @@
 
 import Game from '../models/Game.js';
 import GamePersistenceManager from '../persistence/GamePersistenceManager.js';
+import Player from '../models/Player.js';
 
 
 
@@ -48,87 +49,7 @@ class GameController {
   }
 
   // Unirse a partida existente (modo multijugador)
-  // 🔥 REEMPLAZAR EL MÉTODO joinGame EN GameController.js
-
-<<<<<<< Updated upstream
   joinGame(req, res) {
-=======
-    // Buscar la partida
-    const game = this.games.get(gameId);
-    if (!game) {
-      return res.status(404).json({
-        error: 'Game not found'
-      });
-    }
-
-    // Evitar unirse a partidas contra IA
-    if (game.isVsAI) {
-      return res.status(400).json({
-        error: 'Cannot join AI game'
-      });
-    }
-
-    // ✅ Validar si ya hay jugador 2 REALMENTE conectado
-    if (
-      game.player2 &&
-      typeof game.player2.name === 'string' &&
-      game.player2.name.trim() !== ''
-    ) {
-      return res.status(400).json({
-        error: 'Game is full'
-      });
-    }
-
-    // ✅ Verificar que el jugador 1 no intente unirse de nuevo
-    if (
-      game.player1 &&
-      game.player1.name &&
-      game.player1.name.trim().toLowerCase() === playerName.trim().toLowerCase()
-    ) {
-      return res.status(400).json({
-        error: 'You are already in this game'
-      });
-    }
-
-    // ✅ Crear o asignar el jugador 2
-    if (!game.player2) {
-      game.player2 = {
-        id: Date.now().toString(),
-        name: playerName.trim()
-      };
-    } else {
-      game.player2.name = playerName.trim();
-    }
-
-    // ✅ Configurar tableros si es necesario
-    if (game.player1 && game.player2) {
-      game.player1.setTargetBoard(game.player2.board);
-      game.player2.setTargetBoard(game.player1.board);
-    }
-
-    // ✅ Confirmar unión exitosa
-    return res.status(200).json({
-  success: true,  // ✅ Agregar flag de éxito
-  message: 'Player joined successfully',
-  gameState: game.getGameState(2),  // ✅ Devolver gameState específico del jugador 2
-  gameId: gameId,
-  playerId: 2
-});
-
-  } catch (error) {
-    console.error('❌ Error in joinGame:', error);
-    return res.status(500).json({
-      error: 'Internal server error',
-      details: error.message
-    });
-  }
-}
-
-
-
-  // Configurar barcos del jugador
-  setShips(req, res) {
->>>>>>> Stashed changes
     try {
       const { gameId } = req.params;
       const { playerName } = req.body;
@@ -167,14 +88,20 @@ class GameController {
       }
 
       // ✅ Verificar que el jugador 1 no intente unirse de nuevo
+      // PERO permitir reconexión si la sesión se perdió
       if (
         game.player1 &&
         game.player1.name &&
         game.player1.name.trim().toLowerCase() === playerName.trim().toLowerCase()
       ) {
-        console.log('❌ Player1 intentando unirse de nuevo:', playerName);
-        return res.status(400).json({
-          error: 'You are already in this game'
+        console.log('⚠️ Player1 intentando unirse de nuevo - permitiendo reconexión:', playerName);
+        // En lugar de rechazar, devolver el estado actual del jugador 1
+        return res.status(200).json({
+          success: true,
+          message: 'Reconnected as player 1',
+          gameState: game.getGameState(1),
+          gameId: gameId,
+          playerId: 1
         });
       }
 
@@ -185,7 +112,6 @@ class GameController {
       } else {
         // Por si acaso player2 no existe (no debería pasar)
         console.warn('⚠️ player2 no existía, creándolo...');
-        const Player = require('../models/Player.js').default;
         game.player2 = new Player(2, playerName.trim(), false);
       }
 

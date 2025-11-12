@@ -268,61 +268,68 @@ class SocketHandler {
 
       console.log(`✅ Notificación ships-placed enviada a jugador ${clientData.playerId}`);
 
-      // 🔥 VERIFICAR SI AMBOS JUGADORES ESTÁN LISTOS
-      console.log('🔍 Verificando si ambos jugadores están listos...');
-      console.log('  Player1 ships placed:', game.player1.board.ships.every(s => s.placed));
-      console.log('  Player2 ships placed:', game.player2?.board.ships.every(s => s.placed));
-      console.log('  areAllShipsPlaced():', game.areAllShipsPlaced());
+      // 🔥 VERIFICAR SI AMBOS JUGADORES ESTÁN LISTOS (con pequeño delay para asegurar sincronización)
+      setTimeout(() => {
+        console.log('🔍 Verificando si ambos jugadores están listos...');
+        console.log('  Player1 existe:', !!game.player1);
+        console.log('  Player2 existe:', !!game.player2);
+        console.log('  Player1 ships count:', game.player1?.board?.ships?.length || 0);
+        console.log('  Player2 ships count:', game.player2?.board?.ships?.length || 0);
+        console.log('  Player1 ships placed:', game.player1?.board?.ships?.every(s => s.placed) || false);
+        console.log('  Player2 ships placed:', game.player2?.board?.ships?.every(s => s.placed) || false);
+        console.log('  areAllShipsPlaced():', game.areAllShipsPlaced());
+        console.log('  Game status:', game.status);
 
-      if (game.areAllShipsPlaced()) {
-        console.log('🎮 ¡AMBOS JUGADORES LISTOS! Iniciando juego...');
-        
-        const gameSockets = this.playerGames.get(gameId);
+        if (game.areAllShipsPlaced()) {
+          console.log('🎮 ¡AMBOS JUGADORES LISTOS! Iniciando juego...');
+          
+          const gameSockets = this.playerGames.get(gameId);
 
-        if (gameSockets) {
-          // Obtener estados específicos para cada jugador
-          const player1State = game.getGameState(1);
-          const player2State = game.getGameState(2);
+          if (gameSockets) {
+            // Obtener estados específicos para cada jugador
+            const player1State = game.getGameState(1);
+            const player2State = game.getGameState(2);
 
-          // ✅ Agregar nombres de jugadores al estado
-          player1State.players = {
-            player1: game.player1.name,
-            player2: game.player2.name
-          };
-          player2State.players = {
-            player1: game.player1.name,
-            player2: game.player2.name
-          };
+            // ✅ Agregar nombres de jugadores al estado
+            player1State.players = {
+              player1: game.player1.name,
+              player2: game.player2.name
+            };
+            player2State.players = {
+              player1: game.player1.name,
+              player2: game.player2.name
+            };
 
-          console.log('📤 Enviando game-ready a ambos jugadores...');
+            console.log('📤 Enviando game-ready a ambos jugadores...');
 
-          // Enviar a jugador 1
-          if (gameSockets.player1Socket) {
-            this.io.to(gameSockets.player1Socket).emit('game-ready', {
-              message: '¡Ambos jugadores están listos! El juego comienza.',
-              gameState: player1State,
-              currentTurn: game.currentTurn
-            });
-            console.log('  ✅ game-ready enviado a P1');
+            // Enviar a jugador 1
+            if (gameSockets.player1Socket) {
+              this.io.to(gameSockets.player1Socket).emit('game-ready', {
+                message: '¡Ambos jugadores están listos! El juego comienza.',
+                gameState: player1State,
+                currentTurn: game.currentTurn
+              });
+              console.log('  ✅ game-ready enviado a P1');
+            }
+
+            // Enviar a jugador 2
+            if (gameSockets.player2Socket) {
+              this.io.to(gameSockets.player2Socket).emit('game-ready', {
+                message: '¡Ambos jugadores están listos! El juego comienza.',
+                gameState: player2State,
+                currentTurn: game.currentTurn
+              });
+              console.log('  ✅ game-ready enviado a P2');
+            }
+
+            console.log(`🎮 Partida ${gameId} INICIADA - Status: ${game.status} - Turno: ${game.currentTurn}`);
+          } else {
+            console.error('❌ No se encontraron sockets de la partida');
           }
-
-          // Enviar a jugador 2
-          if (gameSockets.player2Socket) {
-            this.io.to(gameSockets.player2Socket).emit('game-ready', {
-              message: '¡Ambos jugadores están listos! El juego comienza.',
-              gameState: player2State,
-              currentTurn: game.currentTurn
-            });
-            console.log('  ✅ game-ready enviado a P2');
-          }
-
-          console.log(`🎮 Partida ${gameId} INICIADA - Status: ${game.status} - Turno: ${game.currentTurn}`);
         } else {
-          console.error('❌ No se encontraron sockets de la partida');
+          console.log(`⏳ Esperando al otro jugador en ${gameId}`);
         }
-      } else {
-        console.log(`⏳ Esperando al otro jugador en ${gameId}`);
-      }
+      }, 100); // Pequeño delay de 100ms
 
     } catch (error) {
       console.error('❌❌❌ ERROR EN handlePlaceShips:', error);

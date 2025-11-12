@@ -10,6 +10,25 @@ class GameService {
     this.isConnected = false;
   }
 
+  // ✅ Limpiar estado para nueva partida
+  clearGameState() {
+    console.log('🧹 Limpiando estado del juego...');
+    this.gameCode = null;
+    this.gameId = null;
+    this.playerId = null;
+    this.playerName = null;
+    
+    // Limpiar localStorage si existe
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('batalla-naval-game');
+      localStorage.removeItem('gameCode');
+      localStorage.removeItem('gameId');
+      localStorage.removeItem('playerId');
+    }
+    
+    console.log('✅ Estado limpiado');
+  }
+
   // Conectar al servidor WebSocket
   connect() {
     if (this.socket && this.socket.connected) {
@@ -25,7 +44,7 @@ class GameService {
 
     console.log('🔌 Intentando conectar a WebSocket...');
 
-    this.socket = io('https://magnetically-predenial-memphis.ngrok-free.dev', {
+    this.socket = io('http://localhost:3001', {
       transports: ["websocket", "polling"],  // ✅ Agregar polling como fallback
       reconnection: true,
       reconnectionDelay: 1000,
