@@ -1,5 +1,5 @@
 /**
- * 🛠️ SOCKETHANDLER.JS - VERSIÓN CORREGIDA COMPLETA
+ * 🛠️ SOCKETHANDLER.JS - VERSIÓN CORREGIDA Y LIMPIA
  */
 
 class SocketHandler {
@@ -33,18 +33,10 @@ class SocketHandler {
 
     socket.on('create-game', (data) => this.handleCreateGame(socket, data));
     socket.on('join-game', (data) => this.handleJoinGame(socket, data));
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    socket.on('place-ships', (data) =>{ 
-        console.log('🚢 EVENTO place-ships RECIBIDO:', data);  // ✅ AGREGAR
-
-      this.handlePlaceShips(socket, data)});
-=======
-    socket.on('place-ships', (data) => this.handlePlaceShips(socket, data));
->>>>>>> Stashed changes
-=======
-    socket.on('place-ships', (data) => this.handlePlaceShips(socket, data));
->>>>>>> Stashed changes
+    socket.on('place-ships', (data) => {
+      console.log('🚢 EVENTO place-ships RECIBIDO:', data);
+      this.handlePlaceShips(socket, data);
+    });
     socket.on('make-shot', (data) => this.handleMakeShot(socket, data));
     socket.on('get-stats', () => socket.emit('stats', this.getServerStats()));
     socket.on('disconnect', () => this.handleDisconnect(socket));
@@ -52,7 +44,7 @@ class SocketHandler {
   }
 
   /**
-   * ✅ CREAR PARTIDA (sin cambios necesarios)
+   * ✅ CREAR PARTIDA
    */
   async handleCreateGame(socket, data) {
     try {
@@ -115,30 +107,28 @@ class SocketHandler {
    */
   async handleJoinGame(socket, data) {
     try {
-      console.log('🔍 handleJoinGame INICIO:', data); // ✅ AGREGAR
+      console.log('🔍 handleJoinGame INICIO:', data);
 
       const { gameCode, playerName } = data;
 
       if (!gameCode || !playerName) {
-        console.log('❌ Falta gameCode o playerName'); // ✅ AGREGAR
+        console.log('❌ Falta gameCode o playerName');
         socket.emit('error', { message: 'Código y nombre de jugador son requeridos' });
         return;
       }
 
       const gameId = this.gameCodes.get(gameCode.toUpperCase());
-      console.log('🔍 gameId encontrado:', gameId); // ✅ AGREGAR
+      console.log('🔍 gameId encontrado:', gameId);
 
       if (!gameId) {
-        console.log('❌ Código inválido:', gameCode); // ✅ AGREGAR
+        console.log('❌ Código inválido:', gameCode);
         socket.emit('error', { message: 'Código de partida inválido' });
         return;
       }
 
       const game = this.gameController.games.get(gameId);
-      console.log('🔍 Game encontrado:', !!game); // ✅ AGREGAR
-      console.log('🔍 Game.player2:', game?.player2); // ✅ AGREGAR
-
-      // ... resto del código
+      console.log('🔍 Game encontrado:', !!game);
+      console.log('🔍 Game.player2:', game?.player2);
 
       const gameSockets = this.playerGames.get(gameId);
       if (gameSockets && gameSockets.player2Socket) {
@@ -205,466 +195,285 @@ class SocketHandler {
   }
 
   /**
-   * 🔥 COLOCAR BARCOS - CORRECCIÓN CRÍTICA
+   * 🔥 COLOCAR BARCOS - VERSIÓN DIRECTA SIN MOCK
    */
-<<<<<<< Updated upstream
-  /**
- * 🔥 COLOCAR BARCOS - VERSIÓN CORREGIDA SIN MOCK
- */
-async handlePlaceShips(socket, data) {
-  try {
-    console.log('🚢 handlePlaceShips recibido:', data);
-    console.log('🔍 ships:', JSON.stringify(data.ships, null, 2));
-
-    const { gameId, ships } = data;
-    const clientData = this.connectedClients.get(socket.id);
-
-    if (!clientData || !clientData.playerId) {
-      console.log('❌ Cliente no identificado');
-      socket.emit('error', { message: 'Jugador no identificado' });
-      return;
-    }
-
-    console.log('✅ Cliente identificado:', {
-      playerId: clientData.playerId,
-      playerName: clientData.playerName
-    });
-
-    // 🔥 LLAMAR DIRECTAMENTE AL GAME SIN MOCK
-    const game = this.gameController.games.get(gameId);
-    
-    if (!game) {
-      console.log('❌ Game no encontrado:', gameId);
-      socket.emit('error', { message: 'Partida no encontrada' });
-      return;
-    }
-
-    console.log('✅ Game encontrado');
-
-    // Validar barcos
-    if (!Array.isArray(ships) || ships.length !== 5) {
-      console.log('❌ Cantidad de barcos inválida:', ships?.length);
-      socket.emit('error', { message: 'Debe proporcionar exactamente 5 barcos' });
-      return;
-    }
-
-    const expectedSizes = [5, 4, 3, 2, 2];
-    const providedSizes = ships.map(s => s.size).sort((a, b) => b - a);
-
-    if (JSON.stringify(expectedSizes) !== JSON.stringify(providedSizes)) {
-      console.log('❌ Tamaños de barcos inválidos');
-      console.log('  Esperados:', expectedSizes);
-      console.log('  Recibidos:', providedSizes);
-      socket.emit('error', { message: 'Tamaños de barcos inválidos' });
-      return;
-    }
-
-    console.log('✅ Validaciones pasadas, colocando barcos...');
-
-    // 🔥 COLOCAR BARCOS DIRECTAMENTE
-=======
   async handlePlaceShips(socket, data) {
     try {
+      console.log('🚢 handlePlaceShips recibido:', data);
+      console.log('🔍 ships:', JSON.stringify(data.ships, null, 2));
+
       const { gameId, ships } = data;
       const clientData = this.connectedClients.get(socket.id);
 
       if (!clientData || !clientData.playerId) {
+        console.log('❌ Cliente no identificado');
         socket.emit('error', { message: 'Jugador no identificado' });
         return;
       }
 
-      const mockReq = {
-        params: { gameId },
-        body: {
-          playerId: clientData.playerId,
-          ships: ships
-        }
-      };
+      console.log('✅ Cliente identificado:', {
+        playerId: clientData.playerId,
+        playerName: clientData.playerName
+      });
 
-      const mockRes = {
-        status: () => ({
-          json: (responseData) => {
-            if (responseData.success) {
-              const game = this.gameController.games.get(gameId);
+      // 🔥 OBTENER EL JUEGO DIRECTAMENTE
+      const game = this.gameController.games.get(gameId);
+      
+      if (!game) {
+        console.log('❌ Game no encontrado:', gameId);
+        socket.emit('error', { message: 'Partida no encontrada' });
+        return;
+      }
 
-              // Notificar al jugador que colocó los barcos
-              socket.emit('ships-placed', {
-                message: 'Barcos colocados exitosamente',
-                gameState: responseData.gameState
-              });
+      console.log('✅ Game encontrado');
 
-              // 🔥 CAMBIO CRÍTICO: Usar areAllShipsPlaced() en lugar de areAllPlayersReady()
-              if (game && game.areAllShipsPlaced()) {
-                const gameSockets = this.playerGames.get(gameId);
+      // Validar barcos
+      if (!Array.isArray(ships) || ships.length !== 5) {
+        console.log('❌ Cantidad de barcos inválida:', ships?.length);
+        socket.emit('error', { message: 'Debe proporcionar exactamente 5 barcos' });
+        return;
+      }
 
-                if (gameSockets) {
-                  // Obtener estados específicos para cada jugador
-                  const player1State = game.getGameState(1);
-                  const player2State = game.getGameState(2);
+      const expectedSizes = [5, 4, 3, 2, 2];
+      const providedSizes = ships.map(s => s.size).sort((a, b) => b - a);
 
-                  // ✅ Agregar nombres de jugadores al estado
-                  player1State.players = {
-                    player1: game.player1.name,
-                    player2: game.player2.name
-                  };
-                  player2State.players = {
-                    player1: game.player1.name,
-                    player2: game.player2.name
-                  };
+      if (JSON.stringify(expectedSizes) !== JSON.stringify(providedSizes)) {
+        console.log('❌ Tamaños de barcos inválidos');
+        console.log('  Esperados:', expectedSizes);
+        console.log('  Recibidos:', providedSizes);
+        socket.emit('error', { message: 'Tamaños de barcos inválidos' });
+        return;
+      }
 
-                  // Enviar a jugador 1
-                  if (gameSockets.player1Socket) {
-                    this.io.to(gameSockets.player1Socket).emit('game-ready', {
-                      message: '¡Ambos jugadores están listos! El juego comienza.',
-                      gameState: player1State,
-                      currentTurn: game.currentTurn
-                    });
-                  }
+      console.log('✅ Validaciones pasadas, colocando barcos...');
 
-                  // Enviar a jugador 2
-                  if (gameSockets.player2Socket) {
-                    this.io.to(gameSockets.player2Socket).emit('game-ready', {
-                      message: '¡Ambos jugadores están listos! El juego comienza.',
-                      gameState: player2State,
-                      currentTurn: game.currentTurn
-                    });
-                  }
+      // 🔥 COLOCAR BARCOS DIRECTAMENTE
+      try {
+        game.setPlayerShips(clientData.playerId, ships);
+        console.log(`✅ Barcos colocados para jugador ${clientData.playerId}`);
+      } catch (shipError) {
+        console.error('❌ Error al colocar barcos:', shipError.message);
+        socket.emit('error', { message: `Error al colocar barcos: ${shipError.message}` });
+        return;
+      }
 
-                  console.log(`🎮 Partida ${gameId} INICIADA - Status: ${game.status} - Turno: ${game.currentTurn}`);
-                }
-              } else {
-                console.log(`⏳ Esperando al otro jugador en ${gameId}`);
-              }
-            } else {
-              socket.emit('error', { message: responseData.error });
-            }
+      // Obtener estado del juego
+      const gameState = game.getGameState(clientData.playerId);
+
+      // Notificar al jugador que colocó los barcos
+      socket.emit('ships-placed', {
+        message: 'Barcos colocados exitosamente',
+        gameState: gameState
+      });
+
+      console.log(`✅ Notificación ships-placed enviada a jugador ${clientData.playerId}`);
+
+      // 🔥 VERIFICAR SI AMBOS JUGADORES ESTÁN LISTOS
+      console.log('🔍 Verificando si ambos jugadores están listos...');
+      console.log('  Player1 ships placed:', game.player1.board.ships.every(s => s.placed));
+      console.log('  Player2 ships placed:', game.player2?.board.ships.every(s => s.placed));
+      console.log('  areAllShipsPlaced():', game.areAllShipsPlaced());
+
+      if (game.areAllShipsPlaced()) {
+        console.log('🎮 ¡AMBOS JUGADORES LISTOS! Iniciando juego...');
+        
+        const gameSockets = this.playerGames.get(gameId);
+
+        if (gameSockets) {
+          // Obtener estados específicos para cada jugador
+          const player1State = game.getGameState(1);
+          const player2State = game.getGameState(2);
+
+          // ✅ Agregar nombres de jugadores al estado
+          player1State.players = {
+            player1: game.player1.name,
+            player2: game.player2.name
+          };
+          player2State.players = {
+            player1: game.player1.name,
+            player2: game.player2.name
+          };
+
+          console.log('📤 Enviando game-ready a ambos jugadores...');
+
+          // Enviar a jugador 1
+          if (gameSockets.player1Socket) {
+            this.io.to(gameSockets.player1Socket).emit('game-ready', {
+              message: '¡Ambos jugadores están listos! El juego comienza.',
+              gameState: player1State,
+              currentTurn: game.currentTurn
+            });
+            console.log('  ✅ game-ready enviado a P1');
           }
-        })
-      };
 
-      await this.gameController.setShips(mockReq, mockRes);
+          // Enviar a jugador 2
+          if (gameSockets.player2Socket) {
+            this.io.to(gameSockets.player2Socket).emit('game-ready', {
+              message: '¡Ambos jugadores están listos! El juego comienza.',
+              gameState: player2State,
+              currentTurn: game.currentTurn
+            });
+            console.log('  ✅ game-ready enviado a P2');
+          }
+
+          console.log(`🎮 Partida ${gameId} INICIADA - Status: ${game.status} - Turno: ${game.currentTurn}`);
+        } else {
+          console.error('❌ No se encontraron sockets de la partida');
+        }
+      } else {
+        console.log(`⏳ Esperando al otro jugador en ${gameId}`);
+      }
 
     } catch (error) {
-      console.error('❌ Error colocando barcos:', error);
+      console.error('❌❌❌ ERROR EN handlePlaceShips:', error);
+      console.error('📋 Stack:', error.stack);
       socket.emit('error', { message: 'Error al colocar barcos' });
     }
   }
 
   /**
-   * ✅ REALIZAR DISPARO (sin cambios necesarios)
+   * 🔥 REALIZAR DISPARO - VERSIÓN DIRECTA SIN MOCK
    */
   async handleMakeShot(socket, data) {
->>>>>>> Stashed changes
     try {
-      game.setPlayerShips(clientData.playerId, ships);
-      console.log(`✅ Barcos colocados para jugador ${clientData.playerId}`);
-    } catch (shipError) {
-      console.error('❌ Error al colocar barcos:', shipError.message);
-      socket.emit('error', { message: `Error al colocar barcos: ${shipError.message}` });
-      return;
-    }
-
-    // Obtener estado del juego
-    const gameState = game.getGameState(clientData.playerId);
-
-    // Notificar al jugador que colocó los barcos
-    socket.emit('ships-placed', {
-      message: 'Barcos colocados exitosamente',
-      gameState: gameState
-    });
-
-    console.log(`✅ Notificación ships-placed enviada a jugador ${clientData.playerId}`);
-
-    // 🔥 VERIFICAR SI AMBOS JUGADORES ESTÁN LISTOS
-    console.log('🔍 Verificando si ambos jugadores están listos...');
-    console.log('  Player1 ships placed:', game.player1.board.ships.every(s => s.placed));
-    console.log('  Player2 ships placed:', game.player2.board.ships.every(s => s.placed));
-    console.log('  areAllShipsPlaced():', game.areAllShipsPlaced());
-
-    if (game.areAllShipsPlaced()) {
-      console.log('🎮 ¡AMBOS JUGADORES LISTOS! Iniciando juego...');
+      console.log('🎯 handleMakeShot recibido:', data);
       
-      const gameSockets = this.playerGames.get(gameId);
+      const { gameId, row, col } = data;
+      const clientData = this.connectedClients.get(socket.id);
 
-      if (gameSockets) {
-        // Obtener estados específicos para cada jugador
-        const player1State = game.getGameState(1);
-        const player2State = game.getGameState(2);
-
-        // ✅ Agregar nombres de jugadores al estado
-        player1State.players = {
-          player1: game.player1.name,
-          player2: game.player2.name
-        };
-        player2State.players = {
-          player1: game.player1.name,
-          player2: game.player2.name
-        };
-
-        console.log('📤 Enviando game-ready a ambos jugadores...');
-
-        // Enviar a jugador 1
-        if (gameSockets.player1Socket) {
-          this.io.to(gameSockets.player1Socket).emit('game-ready', {
-            message: '¡Ambos jugadores están listos! El juego comienza.',
-            gameState: player1State,
-            currentTurn: game.currentTurn
-          });
-          console.log('  ✅ game-ready enviado a P1');
-        }
-
-        // Enviar a jugador 2
-        if (gameSockets.player2Socket) {
-          this.io.to(gameSockets.player2Socket).emit('game-ready', {
-            message: '¡Ambos jugadores están listos! El juego comienza.',
-            gameState: player2State,
-            currentTurn: game.currentTurn
-          });
-          console.log('  ✅ game-ready enviado a P2');
-        }
-
-        console.log(`🎮 Partida ${gameId} INICIADA - Status: ${game.status} - Turno: ${game.currentTurn}`);
-      } else {
-        console.error('❌ No se encontraron sockets de la partida');
+      if (!clientData || !clientData.playerId) {
+        console.log('❌ Cliente no identificado');
+        socket.emit('error', { message: 'Jugador no identificado' });
+        return;
       }
-    } else {
-      console.log(`⏳ Esperando al otro jugador en ${gameId}`);
-    }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  } catch (error) {
-    console.error('❌❌❌ ERROR EN handlePlaceShips:', error);
-    console.error('📋 Stack:', error.stack);
-    socket.emit('error', { message: 'Error al colocar barcos' });
-  }
-}
-  /**
-   * ✅ REALIZAR DISPARO (sin cambios necesarios)
-   */
-  /**
- * 🔥 REALIZAR DISPARO - VERSIÓN CORREGIDA SIN MOCK
- */
-async handleMakeShot(socket, data) {
-  try {
-    console.log('🎯 handleMakeShot recibido:', data);
-    
-    const { gameId, row, col } = data;
-    const clientData = this.connectedClients.get(socket.id);
+      console.log('✅ Cliente identificado:', {
+        playerId: clientData.playerId,
+        playerName: clientData.playerName,
+        disparo: { row, col }
+      });
 
-    if (!clientData || !clientData.playerId) {
-      console.log('❌ Cliente no identificado');
-      socket.emit('error', { message: 'Jugador no identificado' });
-      return;
-    }
+      // Validar coordenadas
+      if (typeof row !== 'number' || typeof col !== 'number' ||
+          row < 0 || row >= 10 || col < 0 || col >= 10) {
+        console.log('❌ Coordenadas inválidas:', { row, col });
+        socket.emit('error', { message: 'Coordenadas inválidas' });
+        return;
+      }
 
-    console.log('✅ Cliente identificado:', {
-      playerId: clientData.playerId,
-      playerName: clientData.playerName,
-      disparo: { row, col }
-    });
+      // 🔥 OBTENER EL JUEGO DIRECTAMENTE
+      const game = this.gameController.games.get(gameId);
+      
+      if (!game) {
+        console.log('❌ Game no encontrado:', gameId);
+        socket.emit('error', { message: 'Partida no encontrada' });
+        return;
+      }
 
-    // Validar coordenadas
-    if (typeof row !== 'number' || typeof col !== 'number' ||
-        row < 0 || row >= 10 || col < 0 || col >= 10) {
-      console.log('❌ Coordenadas inválidas:', { row, col });
-      socket.emit('error', { message: 'Coordenadas inválidas' });
-      return;
-    }
-
-    // 🔥 OBTENER EL JUEGO DIRECTAMENTE
-    const game = this.gameController.games.get(gameId);
-    
-    if (!game) {
-      console.log('❌ Game no encontrado:', gameId);
-      socket.emit('error', { message: 'Partida no encontrada' });
-      return;
-    }
-
-    console.log('✅ Game encontrado');
-    console.log('🔍 Estado del juego:', {
-      status: game.status,
-      currentTurn: game.currentTurn,
-      playerId: clientData.playerId
-    });
-
-    // Verificar que sea el turno del jugador
-    if (game.status !== 'playing') {
-      console.log('❌ El juego no está en estado playing:', game.status);
-      socket.emit('error', { message: 'El juego no está en curso' });
-      return;
-    }
-
-    if (game.currentTurn !== clientData.playerId) {
-      console.log('❌ No es el turno del jugador:', {
+      console.log('✅ Game encontrado');
+      console.log('🔍 Estado del juego:', {
+        status: game.status,
         currentTurn: game.currentTurn,
         playerId: clientData.playerId
       });
-      socket.emit('error', { message: 'No es tu turno' });
-      return;
-    }
 
-    console.log('✅ Validaciones pasadas, realizando disparo...');
-
-    // 🔥 REALIZAR DISPARO DIRECTAMENTE
-    let result;
-    try {
-      result = game.makeShot(clientData.playerId, row, col);
-      console.log('✅ Disparo realizado:', result);
-    } catch (shotError) {
-      console.error('❌ Error al realizar disparo:', shotError.message);
-      socket.emit('error', { message: `Error al disparar: ${shotError.message}` });
-      return;
-    }
-
-    // Obtener estados específicos de cada jugador
-    const gameSockets = this.playerGames.get(gameId);
-    
-    if (gameSockets) {
-      // Enviar estado específico al jugador 1
-      if (gameSockets.player1Socket) {
-        const player1State = game.getGameState(1);
-        player1State.players = {
-          player1: game.player1.name,
-          player2: game.player2.name
-        };
-
-        this.io.to(gameSockets.player1Socket).emit('shot-result', {
-=======
-=======
->>>>>>> Stashed changes
-      const mockReq = {
-        params: { gameId },
-        body: {
->>>>>>> Stashed changes
-          playerId: clientData.playerId,
-          playerName: clientData.playerName,
-          row: row,
-          col: col,
-          result: result,
-          gameState: player1State
-        });
-        console.log('  ✅ shot-result enviado a P1');
+      // Verificar que sea el turno del jugador
+      if (game.status !== 'playing') {
+        console.log('❌ El juego no está en estado playing:', game.status);
+        socket.emit('error', { message: 'El juego no está en curso' });
+        return;
       }
 
-<<<<<<< Updated upstream
-      // Enviar estado específico al jugador 2
-      if (gameSockets.player2Socket) {
-        const player2State = game.getGameState(2);
-        player2State.players = {
-          player1: game.player1.name,
-          player2: game.player2.name
-        };
-
-        this.io.to(gameSockets.player2Socket).emit('shot-result', {
-          playerId: clientData.playerId,
-          playerName: clientData.playerName,
-          row: row,
-          col: col,
-          result: result,
-          gameState: player2State
+      if (game.currentTurn !== clientData.playerId) {
+        console.log('❌ No es el turno del jugador:', {
+          currentTurn: game.currentTurn,
+          playerId: clientData.playerId
         });
-        console.log('  ✅ shot-result enviado a P2');
+        socket.emit('error', { message: 'No es tu turno' });
+        return;
       }
-=======
-      const mockRes = {
-        status: () => ({
-          json: (responseData) => {
-            if (responseData.success) {
-              const gameSockets = this.playerGames.get(gameId);
-              const game = this.gameController.games.get(gameId);
 
-              if (gameSockets && game) {
-                // Enviar estado específico al jugador 1
-                if (gameSockets.player1Socket) {
-                  const player1State = game.getGameState(1);
-                  player1State.players = {
-                    player1: game.player1.name,
-                    player2: game.player2.name
-                  };
+      console.log('✅ Validaciones pasadas, realizando disparo...');
 
-                  this.io.to(gameSockets.player1Socket).emit('shot-result', {
-                    playerId: clientData.playerId,
-                    playerName: clientData.playerName,
-                    row: row,
-                    col: col,
-                    result: responseData.shot,
-                    gameState: player1State
-                  });
-                }
+      // 🔥 REALIZAR DISPARO DIRECTAMENTE
+      let result;
+      try {
+        result = game.makeShot(clientData.playerId, row, col);
+        console.log('✅ Disparo realizado:', result);
+      } catch (shotError) {
+        console.error('❌ Error al realizar disparo:', shotError.message);
+        socket.emit('error', { message: `Error al disparar: ${shotError.message}` });
+        return;
+      }
 
-                // Enviar estado específico al jugador 2
-                if (gameSockets.player2Socket) {
-                  const player2State = game.getGameState(2);
-                  player2State.players = {
-                    player1: game.player1.name,
-                    player2: game.player2.name
-                  };
+      // Obtener estados específicos de cada jugador
+      const gameSockets = this.playerGames.get(gameId);
+      
+      if (gameSockets) {
+        // Enviar estado específico al jugador 1
+        if (gameSockets.player1Socket) {
+          const player1State = game.getGameState(1);
+          player1State.players = {
+            player1: game.player1.name,
+            player2: game.player2.name
+          };
 
-                  this.io.to(gameSockets.player2Socket).emit('shot-result', {
-                    playerId: clientData.playerId,
-                    playerName: clientData.playerName,
-                    row: row,
-                    col: col,
-                    result: responseData.shot,
-                    gameState: player2State
-                  });
-                }
-              }
+          this.io.to(gameSockets.player1Socket).emit('shot-result', {
+            playerId: clientData.playerId,
+            playerName: clientData.playerName,
+            row: row,
+            col: col,
+            result: result,
+            gameState: player1State
+          });
+          console.log('  ✅ shot-result enviado a P1');
+        }
 
-              // Verificar si el juego terminó
-              if (game && game.status === 'finished') {
-                this.io.to(gameId).emit('game-over', {
-                  winner: game.winner,
-                  winnerName: game.winner === 1 ? game.player1.name : game.player2.name,
-                  message: `¡${game.winner === 1 ? game.player1.name : game.player2.name} ha ganado!`
-                });
+        // Enviar estado específico al jugador 2
+        if (gameSockets.player2Socket) {
+          const player2State = game.getGameState(2);
+          player2State.players = {
+            player1: game.player1.name,
+            player2: game.player2.name
+          };
 
-                this.cleanupGame(gameId);
-              }
-            } else {
-              socket.emit('error', { message: responseData.error });
-            }
-          }
-        })
-      };
+          this.io.to(gameSockets.player2Socket).emit('shot-result', {
+            playerId: clientData.playerId,
+            playerName: clientData.playerName,
+            row: row,
+            col: col,
+            result: result,
+            gameState: player2State
+          });
+          console.log('  ✅ shot-result enviado a P2');
+        }
+      }
 
-      await this.gameController.makeShot(mockReq, mockRes);
+      // Verificar si el juego terminó
+      if (game.status === 'finished') {
+        console.log('🏁 ¡Juego terminado! Ganador:', game.winner);
+        
+        this.io.to(gameId).emit('game-over', {
+          winner: game.winner,
+          winnerName: game.winner === 1 ? game.player1.name : game.player2.name,
+          message: `¡${game.winner === 1 ? game.player1.name : game.player2.name} ha ganado!`
+        });
+
+        this.cleanupGame(gameId);
+      }
+
+      console.log('✅ Disparo procesado correctamente');
 
     } catch (error) {
-      console.error('❌ Error realizando disparo:', error);
-      socket.emit('error', { message: 'Error al realizar disparo' });
->>>>>>> Stashed changes
+      console.error('❌❌❌ ERROR EN handleMakeShot:', error);
+      console.error('📋 Stack:', error.stack);
+      socket.emit('error', { message: 'Error al procesar disparo' });
     }
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    // Verificar si el juego terminó
-    if (game.status === 'finished') {
-      console.log('🏁 ¡Juego terminado! Ganador:', game.winner);
-      
-      this.io.to(gameId).emit('game-over', {
-        winner: game.winner,
-        winnerName: game.winner === 1 ? game.player1.name : game.player2.name,
-        message: `¡${game.winner === 1 ? game.player1.name : game.player2.name} ha ganado!`
-      });
-
-      this.cleanupGame(gameId);
-    }
-
-    console.log('✅ Disparo procesado correctamente');
-
-  } catch (error) {
-    console.error('❌❌❌ ERROR EN handleMakeShot:', error);
-    console.error('📋 Stack:', error.stack);
-    socket.emit('error', { message: 'Error al procesar disparo' });
   }
-}
 
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+  /**
+   * ✅ MANEJO DE DESCONEXIÓN
+   */
   handleDisconnect(socket) {
     console.log(`🔌 Cliente desconectado: ${socket.id}`);
 
@@ -688,6 +497,9 @@ async handleMakeShot(socket, data) {
     this.connectedClients.delete(socket.id);
   }
 
+  /**
+   * ✅ LIMPIEZA DE JUEGO
+   */
   cleanupGame(gameId) {
     for (const [gameCode, id] of this.gameCodes.entries()) {
       if (id === gameId) {
@@ -699,6 +511,9 @@ async handleMakeShot(socket, data) {
     this.playerGames.delete(gameId);
   }
 
+  /**
+   * ✅ GENERAR CÓDIGO DE JUEGO
+   */
   generateGameCode() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -710,6 +525,9 @@ async handleMakeShot(socket, data) {
     return result;
   }
 
+  /**
+   * ✅ OBTENER ESTADÍSTICAS DEL SERVIDOR
+   */
   getServerStats() {
     return {
       connectedClients: this.connectedClients.size,

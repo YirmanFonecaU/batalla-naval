@@ -17,8 +17,6 @@ class GameService {
       return Promise.resolve();
     }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     // Desconectar cualquier socket anterior
     if (this.socket) {
       this.socket.disconnect();
@@ -36,20 +34,6 @@ class GameService {
       timeout: 10000  // ✅ Timeout de 10 segundos
     });
 
-=======
-=======
->>>>>>> Stashed changes
-    this.socket = io('https://magnetically-predenial-memphis.ngrok-free.dev', {
-      transports: ["websocket"],
-      reconnection: true,              // ✅ Habilitar reconexión automática
-      reconnectionDelay: 1000,         // ✅ Esperar 1 segundo entre intentos
-      reconnectionDelayMax: 5000,      // ✅ Máximo 5 segundos
-      reconnectionAttempts: 5          // ✅ Intentar 5 veces
-    });
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     this.setupEventListeners();
     this.setupReconnectionHandlers();
 
@@ -74,38 +58,6 @@ class GameService {
       });
     });
   }
-  // ✅ NUEVO MÉTODO: Manejar reconexiones
-  setupReconnectionHandlers() {
-    this.socket.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`🔄 Intento de reconexión #${attemptNumber}`);
-      window.dispatchEvent(new CustomEvent('reconnecting', {
-        detail: { attempt: attemptNumber }
-      }));
-    });
-
-    this.socket.on('reconnect', (attemptNumber) => {
-      this.isConnected = true;
-      console.log(`✅ Reconectado después de ${attemptNumber} intentos`);
-      window.dispatchEvent(new CustomEvent('reconnected', {
-        detail: { attempts: attemptNumber }
-      }));
-    });
-
-    this.socket.on('reconnect_failed', () => {
-      this.isConnected = false;
-      console.error('❌ Falló la reconexión después de todos los intentos');
-      window.dispatchEvent(new CustomEvent('reconnectionFailed'));
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      this.isConnected = false;
-      console.log(`🔌 Desconectado: ${reason}`);
-      window.dispatchEvent(new CustomEvent('socketDisconnected', {
-        detail: { reason }
-      }));
-    });
-  }
-<<<<<<< Updated upstream
 
   // ✅ Manejar reconexiones
   setupReconnectionHandlers() {
@@ -145,8 +97,6 @@ class GameService {
       }));
     });
   }
-=======
->>>>>>> Stashed changes
 
   // Configurar listeners de eventos
   setupEventListeners() {
@@ -327,7 +277,7 @@ class GameService {
     this.socket.emit('get-stats');
   }
 
-  // ✅ NUEVO: Método para debug
+  // ✅ Método para debug
   logCurrentState() {
     console.log('📊 Estado actual de GameService:');
     console.log('  - Conectado:', this.isConnected);
