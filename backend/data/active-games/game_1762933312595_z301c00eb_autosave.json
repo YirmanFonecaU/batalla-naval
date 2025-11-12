@@ -1,0 +1,107 @@
+{
+  "gameId": "game_1762933312595_z301c00eb",
+  "type": "auto-save",
+  "timestamp": "2025-11-12T07:42:10.316Z",
+  "gameState": {
+    "gameId": "game_1762933312595_z301c00eb",
+    "status": "playing",
+    "currentTurn": 2,
+    "isYourTurn": false,
+    "winner": null,
+    "isVsAI": false,
+    "yourBoard": {
+      "ships": [
+        {
+          "id": 1,
+          "size": 5,
+          "row": 4,
+          "col": 3,
+          "orientation": "vertical",
+          "hits": [],
+          "placed": true,
+          "isSunk": false
+        },
+        {
+          "id": 2,
+          "size": 4,
+          "row": 1,
+          "col": 3,
+          "orientation": "horizontal",
+          "hits": [],
+          "placed": true,
+          "isSunk": false
+        },
+        {
+          "id": 3,
+          "size": 3,
+          "row": 0,
+          "col": 0,
+          "orientation": "vertical",
+          "hits": [],
+          "placed": true,
+          "isSunk": false
+        },
+        {
+          "id": 4,
+          "size": 2,
+          "row": 3,
+          "col": 6,
+          "orientation": "horizontal",
+          "hits": [],
+          "placed": true,
+          "isSunk": false
+        },
+        {
+          "id": 5,
+          "size": 2,
+          "row": 5,
+          "col": 1,
+          "orientation": "vertical",
+          "hits": [],
+          "placed": true,
+          "isSunk": false
+        }
+      ],
+      "shots": []
+    },
+    "opponentBoard": {
+      "shots": [
+        {
+          "row": 3,
+          "col": 4,
+          "isHit": false
+        }
+      ],
+      "sunkShips": []
+    },
+    "yourStats": {
+      "totalShots": 1,
+      "hits": 0,
+      "misses": 1,
+      "accuracy": 0
+    },
+    "opponentStats": {
+      "totalShots": 0,
+      "hits": 0,
+      "misses": 0,
+      "accuracy": 0
+    },
+    "recentMoves": [
+      {
+        "playerId": 1,
+        "row": 3,
+        "col": 4,
+        "isHit": false,
+        "sunkShip": null,
+        "timestamp": "2025-11-12T07:42:10.316Z"
+      }
+    ],
+    "createdAt": "2025-11-12T07:41:52.595Z",
+    "updatedAt": "2025-11-12T07:42:10.316Z"
+  },
+  "metadata": {
+    "version": "1.0",
+    "source": "GameController",
+    "autoSave": true
+  }
+}

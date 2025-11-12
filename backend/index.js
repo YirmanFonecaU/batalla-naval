@@ -13,7 +13,7 @@ app.use(express.json());
 // Ruta de prueba
 app.get("/", (req, res) => {
   res.json({ 
-    message: "API Batalla Naval funcionando 🚀", 
+    message: "API Batalla Naval funcionando ", 
     version: "2.0.0",
     activeGames: gameController.games.size,
     endpoints: {

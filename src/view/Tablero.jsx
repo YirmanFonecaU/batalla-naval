@@ -1,10 +1,32 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./styles/Style.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import gameService from '../services/GameService';
 
 export default function Tablero() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showRules, setShowRules] = useState(false);
+
+  // ✅ OBTENER DATOS DE NAVEGACIÓN con valores por defecto
+  const { 
+    gameId = null, 
+    gameCode = null, 
+    playerId = null, 
+    playerName = 'Jugador', 
+    gameState = null, 
+    opponent = null,
+    isMultiplayer = false,
+    isSetupPhase = false 
+  } = location.state || {};
+
+  console.log('📦 Tablero recibió:', {
+    gameId,
+    gameCode,
+    playerId,
+    playerName,
+    isMultiplayer,
+    hasGameState: !!gameState
+  });
 
   // Estado para los barcos
   const [ships, setShips] = useState([
@@ -17,7 +39,45 @@ export default function Tablero() {
 
   const [draggedShip, setDraggedShip] = useState(null);
   const [dragPreview, setDragPreview] = useState({ row: null, col: null, valid: false });
-  const [selectedShip, setSelectedShip] = useState(null); // Para rotación con click
+  const [selectedShip, setSelectedShip] = useState(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+
+  // ✅ ESCUCHAR EVENTOS DE JUEGO
+  useEffect(() => {
+    if (!isMultiplayer) return;
+
+    const handleGameReady = (event) => {
+      console.log('🎮 EVENTO game-ready recibido:', event.detail);
+      
+      const { gameState: newGameState, currentTurn } = event.detail;
+      
+      navigate('/juego', {
+        state: {
+          gameId: gameId,
+          gameCode: gameCode,
+          playerId: playerId,
+          playerName: playerName,
+          gameState: newGameState,
+          opponent: opponent,
+          isMultiplayer: true,
+          currentTurn: currentTurn
+        }
+      });
+    };
+
+    const handleShipsPlaced = (event) => {
+      console.log('🚢 EVENTO ships-placed recibido:', event.detail);
+      setWaitingForOpponent(true);
+    };
+
+    window.addEventListener('gameReady', handleGameReady);
+    window.addEventListener('shipsPlaced', handleShipsPlaced);
+
+    return () => {
+      window.removeEventListener('gameReady', handleGameReady);
+      window.removeEventListener('shipsPlaced', handleShipsPlaced);
+    };
+  }, [isMultiplayer, gameId, gameCode, playerId, playerName, opponent, navigate]);
 
   const toggleRules = () => setShowRules(!showRules);
 
@@ -78,14 +138,12 @@ export default function Tablero() {
     return hasMinimumSeparation(row, col, size, orientation, excludeShipId);
   };
 
-  // Manejar inicio de arrastre
   const handleDragStart = (e, ship) => {
     setDraggedShip(ship);
-    setSelectedShip(null); // Limpiar selección al arrastrar
+    setSelectedShip(null);
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  // Manejar arrastre sobre celda
   const handleDragOver = (e, row, col) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -100,7 +158,6 @@ export default function Tablero() {
     setDragPreview({ row: null, col: null, valid: false });
   };
 
-  // Manejar soltar barco
   const handleDrop = (e, row, col) => {
     e.preventDefault();
 
@@ -118,7 +175,6 @@ export default function Tablero() {
     setDragPreview({ row: null, col: null, valid: false });
   };
 
-  // Obtener el barco en una posición específica
   const getShipAtPosition = (row, col) => {
     return ships.find(ship => {
       if (!ship.placed) return false;
@@ -131,36 +187,28 @@ export default function Tablero() {
     });
   };
 
-  // Manejar inicio de arrastre desde el tablero
   const handleBoardDragStart = (e, ship) => {
     e.stopPropagation();
     setDraggedShip(ship);
     setSelectedShip(null);
     e.dataTransfer.effectAllowed = 'move';
-    
-    // Hacer que el barco sea semi-transparente mientras se arrastra
     e.currentTarget.style.opacity = '0.4';
   };
 
-  // Restaurar opacidad al terminar el arrastre
   const handleBoardDragEnd = (e) => {
     e.currentTarget.style.opacity = '1';
   };
 
-  // Manejar click en celda del tablero
   const handleCellClick = (e, row, col) => {
-    // Evitar que el click se active si estamos arrastrando
     if (draggedShip) return;
     
     const ship = getShipAtPosition(row, col);
     
     if (ship) {
       if (selectedShip && selectedShip.id === ship.id) {
-        // Si el barco ya está seleccionado, rotarlo
         rotateShipInPlace(ship);
         setSelectedShip(null);
       } else {
-        // Seleccionar el barco
         setSelectedShip(ship);
       }
     } else {
@@ -168,11 +216,9 @@ export default function Tablero() {
     }
   };
 
-  // Rotar barco en su posición actual
   const rotateShipInPlace = (ship) => {
     const newOrientation = ship.orientation === 'horizontal' ? 'vertical' : 'horizontal';
     
-    // Verificar si la rotación es válida
     if (canPlaceShip(ship.row, ship.col, ship.size, newOrientation, ship.id)) {
       setShips(prevShips =>
         prevShips.map(s =>
@@ -184,7 +230,6 @@ export default function Tablero() {
     }
   };
 
-  // Remover barco del tablero (doble click)
   const handleCellDoubleClick = (row, col) => {
     const ship = getShipAtPosition(row, col);
     if (ship) {
@@ -199,7 +244,6 @@ export default function Tablero() {
     }
   };
 
-  // Colocar barcos aleatoriamente
   const placeShipsRandomly = () => {
     const newShips = [...ships];
 
@@ -236,20 +280,52 @@ export default function Tablero() {
     setSelectedShip(null);
   };
 
-  // Iniciar juego
-  const startGame = () => {
-    const allPlaced = ships.every(ship => ship.placed);
+  // 🔥 REEMPLAZAR LA FUNCIÓN startGame EN Tablero.jsx (línea 280+)
+
+const startGame = () => {
+  const allPlaced = ships.every(ship => ship.placed);
+  
+  if (!allPlaced) {
+    alert('¡Debes colocar todos los barcos antes de iniciar!');
+    return;
+  }
+
+  if (isMultiplayer && gameId) {
+    console.log('📤 Enviando barcos al servidor...');
+    console.log('🎮 gameId:', gameId);
+    console.log('👤 playerId:', playerId);
     
-    if (!allPlaced) {
-      alert('¡Debes colocar todos los barcos antes de iniciar!');
-      return;
+    // ✅ FORMATO CORRECTO: Incluir ID y todos los campos necesarios
+    const formattedShips = ships.map(ship => ({
+      id: ship.id,           // ✅ CRÍTICO: Agregar ID
+      size: ship.size,
+      row: ship.row,
+      col: ship.col,
+      orientation: ship.orientation
+    }));
+
+    console.log('🚢 Barcos formateados:', formattedShips);
+
+    // ✅ Asegurarse de que gameService tenga el gameId correcto
+    if (!gameService.gameId) {
+      console.warn('⚠️ gameService.gameId es null, asignando:', gameId);
+      gameService.gameId = gameId;
+    }
+    if (!gameService.playerId) {
+      console.warn('⚠️ gameService.playerId es null, asignando:', playerId);
+      gameService.playerId = playerId;
     }
 
+    gameService.placeShips(formattedShips);
+    setWaitingForOpponent(true);
+    
+  } else {
+    // Modo IA
     localStorage.setItem('playerShips', JSON.stringify(ships));
     navigate("/juego");
-  };
+  }
+};
 
-  // Verificar si una celda debe mostrar preview
   const shouldShowPreview = (row, col) => {
     if (!draggedShip || dragPreview.row === null) return false;
     
@@ -264,81 +340,183 @@ export default function Tablero() {
   };
 
   return (
-    <div className="tablero-container">
-      <div className="top-buttons">
-        <button className="icon-btn" onClick={() => navigate("/")}>↩</button>
-        <button className="icon-btn" onClick={toggleRules}>?</button>
-      </div>
-
-      {showRules && (
-        <div className="rules-box">
-          <ol>
-            <li>Arrastra los barcos desde la caja al tablero.</li>
-            <li>Arrastra un barco ya colocado para moverlo a otra posición.</li>
-            <li>Click en un barco para seleccionarlo (brillo dorado).</li>
-            <li>Click nuevamente en el barco seleccionado para rotarlo.</li>
-            <li>Doble click en un barco para removerlo del tablero.</li>
-            <li>Los barcos deben estar separados por al menos un cuadro.</li>
-          </ol>
+    <div style={{
+      backgroundColor: '#000',
+      minHeight: '100vh',
+      color: '#fff',
+      padding: '20px'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <button onClick={() => navigate("/")} style={{
+            background: '#6a0dad',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '18px'
+          }}>↩</button>
+          <button onClick={toggleRules} style={{
+            background: '#6a0dad',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '18px'
+          }}>?</button>
         </div>
-      )}
 
-      <div className="game-layout">
-        <div className="ships-section">
-          <button className="ships-header-btn">NUESTROS BARCOS</button>
-          <div className="ships-status-grid">
-            {ships.filter(ship => !ship.placed).map(ship => (
-              <div
-                key={ship.id}
-                className="ship-status alive"
-                draggable
-                onDragStart={(e) => handleDragStart(e, ship)}
-                style={{ cursor: 'grab' }}
-              >
-                {Array.from({ length: ship.size }, (_, i) => (
-                  <div key={i} className="ship-segment-status intact"></div>
-                ))}
-              </div>
-            ))}
-            {ships.filter(ship => !ship.placed).length === 0 && (
-              <p className="all-placed">Todos los barcos colocados</p>
+        {isMultiplayer && (
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '20px',
+            padding: '15px',
+            backgroundColor: '#2196F3',
+            borderRadius: '8px'
+          }}>
+            <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '18px' }}>
+              🎮 Modo: Multijugador | Jugador: {playerId} | Código: {gameCode}
+            </p>
+            {opponent && (
+              <p style={{ margin: '5px 0' }}>
+                vs {opponent.name}
+              </p>
             )}
           </div>
-        </div>
+        )}
 
-        <div className="board-section">
-          <div className="grid-container">
-            <table className="game-board">
+        {showRules && (
+          <div style={{
+            backgroundColor: '#222',
+            padding: '20px',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            border: '2px solid #6a0dad'
+          }}>
+            <ol style={{ paddingLeft: '20px' }}>
+              <li>Arrastra los barcos desde la caja al tablero.</li>
+              <li>Arrastra un barco ya colocado para moverlo a otra posición.</li>
+              <li>Click en un barco para seleccionarlo (brillo dorado).</li>
+              <li>Click nuevamente en el barco seleccionado para rotarlo.</li>
+              <li>Doble click en un barco para removerlo del tablero.</li>
+              <li>Los barcos deben estar separados por al menos un cuadro.</li>
+            </ol>
+          </div>
+        )}
+
+        {waitingForOpponent && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '40px',
+              borderRadius: '10px',
+              textAlign: 'center',
+              color: '#000'
+            }}>
+              <h2 style={{ color: '#2196F3', marginBottom: '20px' }}>
+                ✅ Barcos colocados
+              </h2>
+              <div style={{ fontSize: '24px' }}>
+                ⏳ Esperando a {opponent?.name || 'tu oponente'}...
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+          <div style={{ flex: '0 0 200px' }}>
+            <button style={{
+              width: '100%',
+              padding: '10px',
+              backgroundColor: '#6a0dad',
+              border: 'none',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '16px',
+              marginBottom: '10px'
+            }}>NUESTROS BARCOS</button>
+            
+            <div>
+              {ships.filter(ship => !ship.placed).map(ship => (
+                <div
+                  key={ship.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, ship)}
+                  style={{
+                    display: 'flex',
+                    gap: '2px',
+                    marginBottom: '10px',
+                    cursor: 'grab',
+                    padding: '5px',
+                    backgroundColor: '#333',
+                    borderRadius: '5px'
+                  }}
+                >
+                  {Array.from({ length: ship.size }, (_, i) => (
+                    <div key={i} style={{
+                      width: '30px',
+                      height: '30px',
+                      backgroundColor: '#8a2be2',
+                      borderRadius: '3px'
+                    }}></div>
+                  ))}
+                </div>
+              ))}
+              {ships.filter(ship => !ship.placed).length === 0 && (
+                <p style={{ color: '#4CAF50', textAlign: 'center' }}>
+                  Todos los barcos colocados
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <table style={{
+              borderCollapse: 'collapse',
+              backgroundColor: '#1a1a1a'
+            }}>
               <thead>
                 <tr>
-                  <th></th>
+                  <th style={{ padding: '10px', color: '#fff' }}></th>
                   {Array.from({ length: 10 }, (_, i) => (
-                    <th key={i}>{String.fromCharCode(65 + i)}</th>
+                    <th key={i} style={{ padding: '10px', color: '#fff' }}>
+                      {String.fromCharCode(65 + i)}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {Array.from({ length: 10 }, (_, row) => (
                   <tr key={row}>
-                    <th>{row + 1}</th>
+                    <th style={{ padding: '10px', color: '#fff' }}>{row + 1}</th>
                     {Array.from({ length: 10 }, (_, col) => {
                       const isOccupied = isPositionOccupied(row, col);
                       const showPreview = shouldShowPreview(row, col);
                       const ship = getShipAtPosition(row, col);
                       const isSelected = selectedShip && ship && ship.id === selectedShip.id;
-
-                      let cellClasses = 'game-cell';
-                      if (isOccupied) cellClasses += ' occupied';
-                      if (showPreview) cellClasses += dragPreview.valid ? ' preview-valid' : ' preview-invalid';
-                      if (isSelected) cellClasses += ' selected-ship';
-
-                      // Determinar si esta celda es la primera del barco (para arrastre)
                       const isShipStart = ship && ship.row === row && ship.col === col;
+
+                      let bgColor = '#0a3d62';
+                      if (isOccupied) bgColor = '#8a2be2';
+                      if (showPreview) bgColor = dragPreview.valid ? '#4CAF50' : '#f44336';
+                      if (isSelected) bgColor = '#FFD700';
 
                       return (
                         <td
                           key={col}
-                          className={cellClasses}
                           draggable={isOccupied && isShipStart}
                           onDragStart={isShipStart ? (e) => handleBoardDragStart(e, ship) : undefined}
                           onDragEnd={isShipStart ? handleBoardDragEnd : undefined}
@@ -347,27 +525,60 @@ export default function Tablero() {
                           onDrop={(e) => handleDrop(e, row, col)}
                           onClick={(e) => handleCellClick(e, row, col)}
                           onDoubleClick={() => handleCellDoubleClick(row, col)}
-                          style={{ cursor: isOccupied ? (isShipStart ? 'grab' : 'pointer') : 'default' }}
-                          title={
-                            isOccupied 
-                              ? isShipStart
-                                ? "Arrastrar para mover | Click: seleccionar | Click x2: rotar | Doble click: remover"
-                                : "Click: seleccionar | Click x2: rotar | Doble click: remover"
-                              : ""
-                          }
-                        >
-                        </td>
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            backgroundColor: bgColor,
+                            border: '1px solid #444',
+                            cursor: isOccupied ? (isShipStart ? 'grab' : 'pointer') : 'default',
+                            transition: 'all 0.2s'
+                          }}
+                        ></td>
                       );
                     })}
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
 
-          <div className="board-buttons">
-            <button className="action-btn" onClick={placeShipsRandomly}>Random</button>
-            <button className="action-btn" onClick={startGame}>Play</button>
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              marginTop: '20px',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={placeShipsRandomly}
+                style={{
+                  padding: '12px 30px',
+                  backgroundColor: '#FF9800',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                🎲 Random
+              </button>
+              <button
+                onClick={startGame}
+                disabled={!ships.every(ship => ship.placed)}
+                style={{
+                  padding: '12px 30px',
+                  backgroundColor: ships.every(ship => ship.placed) ? '#4CAF50' : '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '16px',
+                  cursor: ships.every(ship => ship.placed) ? 'pointer' : 'not-allowed',
+                  fontWeight: 'bold'
+                }}
+              >
+                ▶️ Play
+              </button>
+            </div>
           </div>
         </div>
       </div>
