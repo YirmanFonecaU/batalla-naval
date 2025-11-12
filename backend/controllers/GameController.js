@@ -48,55 +48,79 @@ class GameController {
   }
 
   // Unirse a partida existente (modo multijugador)
-  joinGame(req, res) {
-    try {
-      const { gameId } = req.params;
-      const { playerName } = req.body;
+ joinGame(req, res) {
+  try {
+    const { gameId } = req.params;
+    const { playerName } = req.body;
 
-      const game = this.games.get(gameId);
-      if (!game) {
-        return res.status(404).json({
-          error: 'Game not found'
-        });
-      }
-
-      if (game.isVsAI) {
-        return res.status(400).json({
-          error: 'Cannot join AI game'
-        });
-      }
-
-      if (game.player2.name !== null) {
-        return res.status(400).json({
-          error: 'Game is full'
-        });
-
-      }
-
-      // Actualizar segundo jugador
-      game.player2.name = playerName;
-      this, games.set(gameId, game);//guarda juego actualizado
-      // Emitir evento al socket para notificar al frontend que se unió el jugador 2
-      if (this.io) {
-        this.io.to(gameId).emit("player-joined", {
-          message: `${playerName} se ha unido a la partida.`,
-          gameId,
-          player2: playerName,
-        });
-      }
-      //HTTP al cliente que hizo el join
-
-      return res.status(200).json({
-        message: 'Joined successfully',
-        gameId,
-        player2: playerName
+    // Buscar la partida
+    const game = this.games.get(gameId);
+    if (!game) {
+      return res.status(404).json({
+        error: 'Game not found'
       });
-
-    } catch (error) {
-      console.error('Error joining game:', error);
-      return res.status(500).json({ error: 'Internal server error' });
     }
+
+    // Evitar unirse a partidas contra IA
+    if (game.isVsAI) {
+      return res.status(400).json({
+        error: 'Cannot join AI game'
+      });
+    }
+
+    // ✅ Validar si ya hay jugador 2 REALMENTE conectado
+    if (
+      game.player2 &&
+      typeof game.player2.name === 'string' &&
+      game.player2.name.trim() !== ''
+    ) {
+      return res.status(400).json({
+        error: 'Game is full'
+      });
+    }
+
+    // ✅ Verificar que el jugador 1 no intente unirse de nuevo
+    if (
+      game.player1 &&
+      game.player1.name &&
+      game.player1.name.trim().toLowerCase() === playerName.trim().toLowerCase()
+    ) {
+      return res.status(400).json({
+        error: 'You are already in this game'
+      });
+    }
+
+    // ✅ Crear o asignar el jugador 2
+    if (!game.player2) {
+      game.player2 = {
+        id: Date.now().toString(),
+        name: playerName.trim()
+      };
+    } else {
+      game.player2.name = playerName.trim();
+    }
+
+    // ✅ Configurar tableros si es necesario
+    if (game.player1 && game.player2) {
+      game.player1.setTargetBoard(game.player2.board);
+      game.player2.setTargetBoard(game.player1.board);
+    }
+
+    // ✅ Confirmar unión exitosa
+    return res.status(200).json({
+      message: 'Player joined successfully',
+      game: game.toJSON ? game.toJSON() : game
+    });
+
+  } catch (error) {
+    console.error('❌ Error in joinGame:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
   }
+}
+
 
 
   // Configurar barcos del jugador
