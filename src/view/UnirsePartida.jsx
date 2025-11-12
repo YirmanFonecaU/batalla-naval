@@ -58,8 +58,11 @@ export default function UnirsePartida() {
             
             setIsJoining(false);
             
-            // ✅ OBTENER nombre del input
-            const currentPlayerName = document.querySelector('input[placeholder*="nombre"]')?.value || 'Jugador2';
+            // ✅ Usar el nombre del estado, no del DOM
+            const currentPlayerName = playerName || 'Jugador2';
+            
+            // ✅ Guardar el nombre en gameService
+            gameService.playerName = currentPlayerName;
             
             console.log('🚀 Navegando a tablero...');
             console.log('📦 Datos a enviar:', {

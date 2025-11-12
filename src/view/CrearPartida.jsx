@@ -60,6 +60,7 @@ export default function CrearPartida() {
             gameService.gameId = gameId;
             gameService.gameCode = gameCode;
             gameService.playerId = playerId;
+            gameService.playerName = playerName; // ✅ Guardar el nombre del jugador
 
             console.log('✅ gameCode:', gameCode);
             console.log('✅ gameId:', gameId);

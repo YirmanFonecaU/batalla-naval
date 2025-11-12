@@ -161,6 +161,10 @@ class Game {
       isYourTurn: this.currentTurn === playerId,
       winner: this.winner,
       isVsAI: this.isVsAI,
+      players: {
+        player1: this.player1?.name || 'Jugador 1',
+        player2: this.player2?.name || 'Jugador 2'
+      },
       yourBoard: {
         ships: player.board.ships.map(ship => ship.toJSON()),
         shots: player.board.shots

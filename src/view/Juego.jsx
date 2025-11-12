@@ -117,6 +117,12 @@ export default function Juego() {
     if (location.state?.gameState) {
       setGameState(location.state.gameState);
       setIsLoading(false);
+      
+      // ✅ Asegurar que el nombre del jugador esté disponible
+      if (location.state?.playerName && !gameService.playerName) {
+        gameService.playerName = location.state.playerName;
+        console.log('✅ Nombre de jugador restaurado:', gameService.playerName);
+      }
 
       // Si es el jugador 1 y no ha colocado barcos, cargarlos del localStorage
       if (
@@ -392,13 +398,10 @@ export default function Juego() {
         <div className="multiplayer-info">
           <div className="game-mode-badge">MULTIJUGADOR</div>
           <div className="player-info">
-            Jugador {gameService.playerId} - {gameService.playerName}
-            {gameState.players &&
-              ` vs ${
-                gameState.players.player1 === gameService.playerName
-                  ? gameState.players.player2
-                  : gameState.players.player1
-              }`}
+            {gameState?.players ? 
+              `${gameService.playerId === 1 ? gameState.players.player1 : gameState.players.player2} vs ${gameService.playerId === 1 ? gameState.players.player2 : gameState.players.player1}` :
+              `Jugador ${gameService.playerId} - ${gameService.playerName || location.state?.playerName || 'Jugador'}`
+            }
           </div>
         </div>
       )}
