@@ -105,19 +105,28 @@ class Game {
     this.updatedAt = new Date();
 
     if (this.isVsAI && this.currentTurn === 2 && this.status === 'playing') {
-      setTimeout(() => {
-        try {
-          const aiResult = this.makeAIShot();
-          if (typeof this.onAIShotComplete === 'function') {
-            this.onAIShotComplete(aiResult, this.getGameState(1));
-          }
-        } catch (error) {
-          console.error('AI shot error:', error);
-        }
-      }, 3000);
+      this.scheduleAIShot();
     }
 
     return result;
+  }
+
+  scheduleAIShot() {
+    setTimeout(() => {
+      try {
+        const aiResult = this.makeAIShot();
+        if (typeof this.onAIShotComplete === 'function') {
+          this.onAIShotComplete(aiResult, this.getGameState(1));
+        }
+        
+        // Si la IA acertó y el juego sigue, programar otro disparo
+        if (aiResult.isHit && this.status === 'playing' && this.currentTurn === 2) {
+          this.scheduleAIShot();
+        }
+      } catch (error) {
+        console.error('AI shot error:', error);
+      }
+    }, 2000);
   }
 
   makeAIShot() {

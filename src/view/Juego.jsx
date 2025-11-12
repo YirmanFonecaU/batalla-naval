@@ -440,28 +440,32 @@ export default function Juego() {
           <div className="ships-status-section">
             <div className="ships-header-btn">BARCOS RIVALES</div>
             <div className="ships-status-grid">
-              {gameState.opponentBoard.allShips && gameState.opponentBoard.allShips.length > 0
-                ? gameState.opponentBoard.allShips.map((ship) => {
-                    const allHit = ship.segments.every(seg => seg.isHit);
-                    
-                    return (
-                      <div key={ship.id} className={`ship-status ${allHit ? 'sunk' : 'alive'}`}>
-                        {ship.segments.map((seg, i) => (
-                          <div 
-                            key={i} 
-                            className={`ship-segment-status ${seg.isHit ? 'hit' : 'intact'}`}
-                          />
-                        ))}
-                      </div>
-                    );
-                  })
-                : [5, 4, 3, 2, 2].map((size, idx) => (
-                    <div key={idx} className="ship-status alive">
+              {(() => {
+                const standardSizes = [5, 4, 3, 2, 2];
+                const sunkShips = [...(gameState.opponentBoard.sunkShips || [])];
+                
+                return standardSizes.map((size, idx) => {
+                  // Buscar si hay un barco hundido de este tamaño que no hayamos usado
+                  const sunkShipIndex = sunkShips.findIndex(ship => ship.size === size);
+                  const isSunk = sunkShipIndex !== -1;
+                  
+                  // Remover el barco usado de la copia
+                  if (isSunk) {
+                    sunkShips.splice(sunkShipIndex, 1);
+                  }
+                  
+                  return (
+                    <div key={idx} className={`ship-status ${isSunk ? 'sunk' : 'alive'}`}>
                       {Array.from({ length: size }, (_, i) => (
-                        <div key={i} className="ship-segment-status intact" />
+                        <div 
+                          key={i} 
+                          className={`ship-segment-status ${isSunk ? 'hit' : 'intact'}`}
+                        />
                       ))}
                     </div>
-                  ))}
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
